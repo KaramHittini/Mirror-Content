@@ -1,13 +1,16 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.security import decode_token
 from app.db.database import get_session
 from app.models.user import User
-from sqlalchemy import select
 
 bearer = HTTPBearer()
+
+# Single reusable DB dependency — use `Depends(get_session)` directly in endpoints
+get_db = get_session
 
 
 async def get_current_user(
@@ -23,8 +26,3 @@ async def get_current_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
-
-
-async def get_db() -> AsyncSession:
-    async with get_session() as session:
-        yield session

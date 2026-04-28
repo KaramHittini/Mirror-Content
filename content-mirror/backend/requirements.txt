@@ -5,7 +5,8 @@ python-multipart==0.0.9
 
 # Database
 sqlalchemy[asyncio]==2.0.31
-asyncpg==0.29.0
+asyncpg==0.29.0           # async driver (FastAPI)
+psycopg2-binary==2.9.9    # sync driver (Celery worker)
 alembic==1.13.2
 
 # Auth
@@ -27,6 +28,10 @@ aiofiles==23.2.1
 
 # PDF export
 weasyprint==62.3
+jinja2==3.1.4            # HTML templates for PDF
+
+# Rate limiting
+slowapi==0.1.9
 
 # HTTP
 httpx==0.27.0
