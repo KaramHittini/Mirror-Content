@@ -5,7 +5,6 @@ Broadcasts progress updates via Redis pub/sub (consumed by the WebSocket endpoin
 
 import json
 import sys
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 

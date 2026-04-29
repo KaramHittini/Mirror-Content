@@ -18,7 +18,7 @@ class User(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    analyses: Mapped[list["Analysis"]] = relationship(back_populates="user", lazy="select")
+    analyses: Mapped[list["Analysis"]] = relationship(back_populates="user", lazy="select")  # noqa: F821
 
     @property
     def analyses_limit(self) -> int:
