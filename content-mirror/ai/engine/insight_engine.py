@@ -16,7 +16,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
-import anthropic
+import google.generativeai as genai
 
 from app.core.config import settings  # type: ignore[import]
 
@@ -179,7 +179,8 @@ def _generate_llm_insights(analysis_data: dict, rule_insights: list[dict]) -> li
     or to add nuance to the overall performance picture.
     """
     try:
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+        genai.configure(api_key=settings.gemini_api_key)
+        model = genai.GenerativeModel(settings.ai_model)
 
         rule_summary = "\n".join(
             f"- {i['problem']}: {i['cause']}" for i in rule_insights[:4]
@@ -208,14 +209,10 @@ Return ONLY a JSON array of insights (1–2 items). Each item must have EXACTLY 
 
 Return only valid JSON, no explanation."""
 
-        message = client.messages.create(
-            model=settings.ai_model,
-            max_tokens=600,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        response = model.generate_content(prompt)
 
         import json
-        raw = message.content[0].text.strip()
+        raw = response.text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):

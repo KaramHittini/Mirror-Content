@@ -25,9 +25,8 @@ class Settings(BaseSettings):
     local_upload_dir: str = "./uploads"
 
     # AI
-    anthropic_api_key: str = ""
-    openai_api_key: str = ""
-    ai_model: str = "claude-sonnet-4-6"
+    gemini_api_key: str = ""
+    ai_model: str = "gemini-2.0-flash"
 
     # Vector DB
     pinecone_api_key: str = ""
