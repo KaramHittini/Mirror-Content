@@ -254,7 +254,7 @@ content-mirror/
 
 ---
 
-### Noor Najjar — Audio & Speech Analysis
+### Nour Alfarraj — Audio & Speech Analysis
 
 #### Phase 1: Audio Analyzer
 - [ ] `ai/analyzers/audio_analyzer.py`
@@ -462,9 +462,9 @@ celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
 ## Recommended Development Order
 
 ```
-Week 1:  Karam → DB + Auth API       | Amr → Pipeline skeleton    | Noor N → Audio analyzer  | Noor A → Image analyzer
-Week 2:  Karam → Upload + Queue      | Amr → Insight engine        | Noor N → Whisper module  | Noor A → Benchmark engine
-Week 3:  Karam → Frontend core       | Amr → Integration + tests   | Noor N → Insight rules   | Noor A → Vector DB seeding
+Week 1:  Karam → DB + Auth API       | Amr → Pipeline skeleton    | Nour → Audio analyzer  | Noor A → Image analyzer
+Week 2:  Karam → Upload + Queue      | Amr → Insight engine        | Nour → Whisper module  | Noor A → Benchmark engine
+Week 3:  Karam → Frontend core       | Amr → Integration + tests   | Nour → Insight rules   | Noor A → Vector DB seeding
 Week 4:  Karam → Frontend UI polish  | All → Integration testing + bug fixes
 ```
 
@@ -476,7 +476,7 @@ Week 4:  Karam → Frontend UI polish  | All → Integration testing + bug fixes
 |------|------|------|
 | Karam | Software Engineering | Frontend, Backend API, DevOps, Infrastructure |
 | Amr | AI | Pipeline architecture, insight engine, recommendation engine |
-| Noor Najjar | AI | Audio analysis, Whisper transcription |
+| Nour Alfarraj | AI | Audio analysis, Whisper transcription |
 | Noor Adili | AI | Visual analysis, benchmark engine, Pinecone |
 
 ---
@@ -484,7 +484,7 @@ Week 4:  Karam → Frontend UI polish  | All → Integration testing + bug fixes
 ## Dependency Map
 
 ```
-Noor Najjar  ──→  defines audio output schema
+Nour Alfarraj  ──→  defines audio output schema
 Noor Adili   ──→  defines visual output schema
                          ↓
 Amr  ──→  builds insight engine on top of both schemas

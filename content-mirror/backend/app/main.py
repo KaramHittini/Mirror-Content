@@ -12,6 +12,7 @@ from app.api.v1.router import router
 from app.core.config import settings
 from app.db.database import create_tables
 from app.middleware.logging_middleware import RequestLoggingMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 
 # ── Logging setup ──────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -50,6 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=120)
 
 app.include_router(router)
 

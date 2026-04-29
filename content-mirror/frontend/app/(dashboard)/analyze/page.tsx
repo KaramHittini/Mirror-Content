@@ -1,13 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { VideoUploader } from "@/components/analysis/VideoUploader";
 import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { useAnalysis } from "@/hooks/useAnalysis";
+import { getAnalysisResult } from "@/lib/api";
+import type { AnalysisResult } from "@/lib/types";
+import { Loader2 } from "lucide-react";
 
-export default function AnalyzePage() {
-  const { analysisResult, isAnalyzing, analysisId, startAnalysis, progress } =
-    useAnalysis();
+function AnalyzeContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const loadId = searchParams.get("id");
+
+  const { analysisResult, isAnalyzing, startAnalysis, progress, stage } = useAnalysis();
+  const [loadedResult, setLoadedResult] = useState<AnalysisResult | null>(null);
+  const [isLoadingResult, setIsLoadingResult] = useState(false);
+
+  useEffect(() => {
+    if (!loadId) return;
+    setIsLoadingResult(true);
+    getAnalysisResult(loadId)
+      .then((data: AnalysisResult) => setLoadedResult(data))
+      .catch(() => router.push("/history"))
+      .finally(() => setIsLoadingResult(false));
+  }, [loadId, router]);
+
+  const result = loadedResult ?? analysisResult;
+
+  const handleNewAnalysis = () => {
+    setLoadedResult(null);
+    router.push("/analyze");
+  };
+
+  if (isLoadingResult) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -18,20 +51,32 @@ export default function AnalyzePage() {
         </p>
       </div>
 
-      {!analysisResult && (
+      {!result && (
         <VideoUploader
           onUpload={startAnalysis}
           isUploading={isAnalyzing}
           progress={progress}
+          stage={stage}
         />
       )}
 
-      {analysisResult && (
-        <AnalysisResults
-          result={analysisResult}
-          onNewAnalysis={() => window.location.reload()}
-        />
+      {result && (
+        <AnalysisResults result={result} onNewAnalysis={handleNewAnalysis} />
       )}
     </div>
+  );
+}
+
+export default function AnalyzePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+        </div>
+      }
+    >
+      <AnalyzeContent />
+    </Suspense>
   );
 }

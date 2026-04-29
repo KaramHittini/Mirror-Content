@@ -2,13 +2,15 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, Film, Loader2 } from "lucide-react";
+import { UploadCloud, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { AnalysisProgress } from "@/lib/types";
 
 interface VideoUploaderProps {
   onUpload: (file: File) => void;
   isUploading: boolean;
   progress: number;
+  stage?: AnalysisProgress["stage"] | null;
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -20,7 +22,7 @@ const STAGE_LABELS: Record<string, string> = {
   generating_insights: "Generating insights...",
 };
 
-export function VideoUploader({ onUpload, isUploading, progress }: VideoUploaderProps) {
+export function VideoUploader({ onUpload, isUploading, progress, stage }: VideoUploaderProps) {
   const [urlInput, setUrlInput] = useState("");
 
   const onDrop = useCallback(
@@ -43,7 +45,7 @@ export function VideoUploader({ onUpload, isUploading, progress }: VideoUploader
       <div className="bg-surface-900 border border-white/10 rounded-2xl p-10 text-center space-y-4">
         <Loader2 className="w-10 h-10 text-brand-500 animate-spin mx-auto" />
         <p className="text-white font-medium">
-          {STAGE_LABELS[String(progress)] ?? "Analyzing your content..."}
+          {STAGE_LABELS[stage ?? ""] ?? "Analyzing your content..."}
         </p>
         <div className="w-full bg-surface-800 rounded-full h-2">
           <div

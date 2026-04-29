@@ -5,7 +5,7 @@
 |--------|------|
 | **Karam** | Software Engineering (Full-Stack, DevOps) |
 | **Amr** | AI — Pipeline Architecture & Integration |
-| **Noor Najjar** | AI — Audio & Speech Analysis |
+| **Nour Alfarraj** | AI — Audio & Speech Analysis |
 | **Noor Adili** | AI — Visual Analysis & Benchmarking |
 
 ---
@@ -93,7 +93,7 @@
 
 ---
 
-## Noor Najjar — Audio & Speech Analysis
+## Nour Alfarraj — Audio & Speech Analysis
 
 ### Phase 1: Audio Analyzer
 - [ ] `ai/analyzers/audio_analyzer.py`
@@ -160,7 +160,7 @@
 ## Shared / Cross-Team Dependencies
 
 ```
-Amr depends on:      Noor Najjar (audio output schema) + Noor Adili (visual output schema)
+Amr depends on:      Nour Alfarraj (audio output schema) + Noor Adili (visual output schema)
 Karam depends on:    Amr (final JSON schema from ai/main.py) for worker integration
 Frontend depends on: Karam backend API being stable
 ```
@@ -168,9 +168,9 @@ Frontend depends on: Karam backend API being stable
 ## Recommended Development Order
 
 ```
-Week 1:  Karam: DB + Auth API  |  Amr: Pipeline skeleton  |  Noor N: Audio analyzer  |  Noor A: Image analyzer
-Week 2:  Karam: Upload + Queue |  Amr: Insight engine      |  Noor N: Whisper module  |  Noor A: Benchmark engine
-Week 3:  Karam: Frontend core  |  Amr: Integration + tests |  Noor N: Insight rules   |  Noor A: Vector DB seeding
+Week 1:  Karam: DB + Auth API  |  Amr: Pipeline skeleton  |  Nour: Audio analyzer  |  Noor A: Image analyzer
+Week 2:  Karam: Upload + Queue |  Amr: Insight engine      |  Nour: Whisper module  |  Noor A: Benchmark engine
+Week 3:  Karam: Frontend core  |  Amr: Integration + tests |  Nour: Insight rules   |  Noor A: Vector DB seeding
 Week 4:  Karam: Frontend UI    |  All: Integration testing  |  Bug fixes + polish
 ```
 
@@ -182,11 +182,11 @@ Week 4:  Karam: Frontend UI    |  All: Integration testing  |  Bug fixes + polis
 |---|-------------|-------|----------|
 | 1 | **Async job queue** (Celery + Redis) — video processing is long-running, must be async | Karam | Critical |
 | 2 | **WebSocket progress updates** — real-time analysis progress instead of polling | Karam | High |
-| 3 | **Whisper transcription** — extract speech for deeper hook/message analysis | Noor Najjar | High |
+| 3 | **Whisper transcription** — extract speech for deeper hook/message analysis | Nour Alfarraj | High |
 | 4 | **Face & subtitle detection** — strong engagement signals from visual layer | Noor Adili | High |
 | 5 | **PDF report export** — users can share/save analysis reports | Karam | Medium |
 | 6 | **JWT refresh tokens** — better auth security than single short-lived tokens | Karam | Medium |
 | 7 | **Probability language in insights** — never claim certainty ("likely", "strong signal suggests") | Amr | Medium |
 | 8 | **Content type auto-detection** — classify niche (fitness, tech, lifestyle) for better benchmarking | Noor Adili | Medium |
 | 9 | **Arabic/English UI** — i18n support (team + likely user base) | Karam | Low |
-| 10 | **Filler word detection** — "um", "uh" frequency signals speech quality | Noor Najjar | Low |
+| 10 | **Filler word detection** — "um", "uh" frequency signals speech quality | Nour Alfarraj | Low |

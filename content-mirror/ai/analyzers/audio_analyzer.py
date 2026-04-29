@@ -1,5 +1,5 @@
 """
-Audio quality & speech analyzer — Noor Najjar's primary file.
+Audio quality & speech analyzer — Nour Alfarraj's primary file.
 
 Responsibilities:
 - Extract audio from video
