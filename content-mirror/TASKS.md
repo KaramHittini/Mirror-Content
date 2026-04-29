@@ -13,53 +13,53 @@
 ## Karam — Software Engineering
 
 ### Phase 1: Project Setup & Infrastructure
-- [ ] Initialize Git repository, set up `.env`, Docker Compose
-- [ ] Configure PostgreSQL + Alembic migrations
-- [ ] Configure Redis for Celery queue and caching
-- [ ] Set up S3/R2 bucket (or local storage fallback) for video uploads
-- [ ] Write `backend/app/db/database.py` — async SQLAlchemy engine + session factory
-- [ ] Run first Alembic migration (users + analyses tables)
+- [x] Initialize Git repository, set up `.env`, Docker Compose
+- [x] Configure PostgreSQL + Alembic migrations
+- [x] Configure Redis for Celery queue and caching
+- [x] Set up S3/R2 bucket (or local storage fallback) for video uploads
+- [x] Write `backend/app/db/database.py` — async SQLAlchemy engine + session factory
+- [x] Run first Alembic migration (users + analyses tables)
 
 ### Phase 2: Backend API (FastAPI)
-- [ ] `app/core/config.py` — Pydantic settings with `.env` loading
-- [ ] `app/core/security.py` — JWT creation, hashing, refresh tokens
-- [ ] `app/core/dependencies.py` — `get_current_user`, `get_db` deps
-- [ ] `app/models/user.py` + `app/models/analysis.py` — SQLAlchemy ORM models
-- [ ] `app/schemas/` — Pydantic request/response schemas
-- [ ] `app/api/v1/endpoints/auth.py` — `/register`, `/login`, `/refresh`, `/logout`
-- [ ] `app/api/v1/endpoints/users.py` — `/me`, `/me/usage`
-- [ ] `app/api/v1/endpoints/analysis.py` — `/upload`, `/status/{id}`, `/result/{id}`, `/history`
-- [ ] `app/api/v1/endpoints/reports.py` — `/export/pdf/{id}`, `/export/json/{id}`
-- [ ] `app/services/storage_service.py` — abstract upload/download (local + S3)
-- [ ] `app/services/queue_service.py` — enqueue analysis jobs via Celery
-- [ ] `app/workers/analysis_worker.py` — Celery task that calls AI pipeline
-- [ ] WebSocket endpoint `/ws/{analysis_id}` — real-time progress updates
-- [ ] Rate limiting middleware (free: 5/month, pro: 100/month)
-- [ ] CORS, request logging, error handler middleware
+- [x] `app/core/config.py` — Pydantic settings with `.env` loading
+- [x] `app/core/security.py` — JWT creation, hashing, refresh tokens
+- [x] `app/core/dependencies.py` — `get_current_user`, `get_db` deps
+- [x] `app/models/user.py` + `app/models/analysis.py` — SQLAlchemy ORM models
+- [x] `app/schemas/` — Pydantic request/response schemas
+- [x] `app/api/v1/endpoints/auth.py` — `/register`, `/login`, `/refresh`, `/logout`
+- [x] `app/api/v1/endpoints/users.py` — `/me`, `/me/usage`, `PATCH /me`
+- [x] `app/api/v1/endpoints/analysis.py` — `/upload`, `/status/{id}`, `/result/{id}`, `/history`
+- [x] `app/api/v1/endpoints/reports.py` — `/export/pdf/{id}`, `/export/json/{id}`
+- [x] `app/services/storage_service.py` — abstract upload/download (local + S3)
+- [x] `app/services/queue_service.py` — enqueue analysis jobs via Celery
+- [x] `app/workers/analysis_worker.py` — Celery task that calls AI pipeline
+- [x] WebSocket endpoint `/ws/{analysis_id}` — real-time progress updates
+- [x] Rate limiting middleware (IP-level 120 req/min + per-user monthly quota at endpoint)
+- [x] CORS, request logging, error handler middleware
 
 ### Phase 3: Frontend (Next.js 14+)
-- [ ] `app/(auth)/login/page.tsx` + `app/(auth)/signup/page.tsx`
-- [ ] `app/(dashboard)/layout.tsx` — Sidebar + Navbar layout
-- [ ] `app/(dashboard)/dashboard/page.tsx` — usage stats, recent analyses
-- [ ] `app/(dashboard)/analyze/page.tsx` — main upload + analysis UI
-- [ ] `app/(dashboard)/history/page.tsx` — paginated analysis history
-- [ ] `app/(dashboard)/settings/page.tsx` — profile, plan, API keys
-- [ ] `components/analysis/VideoUploader.tsx` — drag-and-drop + URL input
-- [ ] `components/analysis/AnalysisResults.tsx` — full results display
-- [ ] `components/analysis/ScoreCard.tsx` — hook/pacing/audio/visual scores
-- [ ] `components/analysis/WeakSectionsTimeline.tsx` — visual timeline with weak spots
-- [ ] `components/analysis/RecommendationsPanel.tsx` — actionable improvement cards
-- [ ] `hooks/useAnalysis.ts` — upload, poll/WebSocket status, fetch results
-- [ ] `hooks/useAuth.ts` — login, register, token refresh, protected routes
-- [ ] `lib/api.ts` — typed API client (axios/fetch wrapper)
-- [ ] Landing page `app/page.tsx` — marketing/hero
+- [x] `app/(auth)/login/page.tsx` + `app/(auth)/signup/page.tsx`
+- [x] `app/(dashboard)/layout.tsx` — Sidebar + Navbar layout
+- [x] `app/(dashboard)/dashboard/page.tsx` — usage stats, recent analyses
+- [x] `app/(dashboard)/analyze/page.tsx` — main upload + analysis UI (incl. `?id=` history loading)
+- [x] `app/(dashboard)/history/page.tsx` — paginated analysis history
+- [x] `app/(dashboard)/settings/page.tsx` — profile, plan, usage
+- [x] `components/analysis/VideoUploader.tsx` — drag-and-drop + URL input + stage-aware progress label
+- [x] `components/analysis/AnalysisResults.tsx` — full results display
+- [x] `components/analysis/ScoreCard.tsx` — hook/pacing/audio/visual scores
+- [x] `components/analysis/WeakSectionsTimeline.tsx` — visual timeline with weak spots
+- [x] `components/analysis/RecommendationsPanel.tsx` — actionable improvement cards
+- [x] `hooks/useAnalysis.ts` — upload, poll/WebSocket status, fetch results
+- [x] `hooks/useAuth.ts` — login, register, token refresh, protected routes
+- [x] `lib/api.ts` — typed API client (axios/fetch wrapper)
+- [x] Landing page `app/page.tsx` — marketing/hero
 
 ### Phase 4: DevOps & Quality
-- [ ] `backend/Dockerfile` + `frontend/Dockerfile`
-- [ ] GitHub Actions CI — lint, test, build on PR
-- [ ] Write backend unit tests (pytest) for auth + analysis endpoints
+- [x] `backend/Dockerfile` + `frontend/Dockerfile`
+- [x] GitHub Actions CI — lint, test, build on PR
+- [x] Write backend unit tests (pytest) for auth + analysis endpoints
 - [ ] Write frontend component tests (Vitest + Testing Library)
-- [ ] PDF report export (using `reportlab` or `weasyprint`)
+- [x] PDF report export (using `weasyprint`)
 - [ ] Set up Sentry error tracking (frontend + backend)
 
 ---
@@ -67,28 +67,28 @@
 ## Amr — AI Pipeline Architecture & Integration
 
 ### Phase 1: Pipeline Core
-- [ ] `ai/main.py` — entry point: load video, run all analyzers, merge + return JSON
+- [x] `ai/main.py` — entry point: load video, run all analyzers, merge + return JSON
 - [ ] `ai/pipeline/preprocessor.py` — extract frames (0.5s interval), extract audio, normalize resolution
 - [ ] `ai/pipeline/segmenter.py` — split video into Hook / Body / CTA segments
 - [ ] `ai/pipeline/feature_extractor.py` — aggregate features per segment
 
 ### Phase 2: Insight & Recommendation Engines
-- [ ] `ai/engine/insight_engine.py`
+- [x] `ai/engine/insight_engine.py`
   - Rule-based reasoning layer (IF hook_score < 4 AND low motion → "Weak Hook")
   - LLM integration (Claude) for natural-language explanations
   - Output: structured `Problem → Cause → Evidence` per insight
-- [ ] `ai/engine/recommendation_engine.py`
+- [x] `ai/engine/recommendation_engine.py`
   - Map each detected problem to a specific, actionable fix
   - Generate 3–5 prioritized recommendations
   - Include example wording/scripts where applicable
-- [ ] `ai/utils/video_utils.py` — frame extraction, scene change detection helpers
-- [ ] Backend integration: expose AI pipeline as a callable from `analysis_worker.py`
+- [x] `ai/utils/video_utils.py` — frame extraction, scene change detection helpers
+- [x] Backend integration: expose AI pipeline as a callable from `analysis_worker.py`
 - [ ] Write unit tests for insight + recommendation engines
 - [ ] Prompt engineering: design and iterate Claude system prompts for explanation quality
 
 ### Phase 3: Pipeline API Contract
-- [ ] Define strict JSON schema for pipeline input/output
-- [ ] Validate output matches schema before returning to backend
+- [x] Define strict JSON schema for pipeline input/output
+- [x] Validate output matches schema before returning to backend (`_sanitize`)
 - [ ] Handle edge cases: very short videos (<5s), audio-only, silent videos
 
 ---
@@ -96,7 +96,7 @@
 ## Nour Alfarraj — Audio & Speech Analysis
 
 ### Phase 1: Audio Analyzer
-- [ ] `ai/analyzers/audio_analyzer.py`
+- [x] `ai/analyzers/audio_analyzer.py`
   - Extract audio track using `moviepy`
   - RMS energy analysis (volume consistency)
   - Silence ratio detection (pause mapping)
@@ -106,7 +106,7 @@
   - Return: `{ "audio_quality": string, "silence_ratio": float, "snr_db": float }`
 
 ### Phase 2: Whisper Transcription
-- [ ] `ai/analyzers/transcription_analyzer.py`
+- [ ] `ai/analyzers/transcription_analyzer.py` *(transcription logic exists inside `audio_analyzer.py` but needs to be its own module)*
   - Integrate OpenAI Whisper (local model or API)
   - Extract full transcript with word-level timestamps
   - Detect: speech clarity, filler words (`um`, `uh`, `like`), speaking pace (WPM)
@@ -114,7 +114,7 @@
   - Return: `{ "transcript": string, "wpm": int, "filler_word_ratio": float, "hook_message_present": bool }`
 
 ### Phase 3: Audio Insight Integration
-- [ ] Feed audio insights into `insight_engine.py` rules
+- [x] Feed audio insights into `insight_engine.py` rules
   - IF silence_ratio > 0.4 → "Too many pauses slow down pacing"
   - IF filler_word_ratio > 0.1 → "High filler words reduce perceived authority"
   - IF hook_message_present == false → "Main message missing from opening"
@@ -126,7 +126,7 @@
 ## Noor Adili — Visual Analysis & Benchmarking
 
 ### Phase 1: Image/Visual Analyzer
-- [ ] `ai/analyzers/image_analyzer.py`
+- [x] `ai/analyzers/image_analyzer.py`
   - Sample frames across video timeline
   - Sharpness: Laplacian variance per frame
   - Brightness: histogram analysis (over/underexposed detection)
@@ -138,22 +138,21 @@
   - Return: `{ "image_quality": string, "sharpness_score": float, "brightness_score": float, "face_detected": bool, "subtitles_detected": bool }`
 
 ### Phase 2: Benchmark Engine
-- [ ] `ai/engine/benchmark_engine.py`
+- [x] `ai/engine/benchmark_engine.py`
   - Design vector embedding schema for content fingerprinting
   - Extract feature vector per video (topic + structure + pacing + quality scores)
-  - Store successful content embeddings in Pinecone vector DB
-  - Query: find top-3 similar successful videos given new content features
+  - Query: find top-3 similar successful videos given new content features (Pinecone + fallback)
   - Return: `{ "similar_content": [{ "title": str, "platform": str, "why_successful": str, "key_differences": str }] }`
+- [ ] Store & seed successful content embeddings in Pinecone vector DB *(fallback placeholder data is in place; real curation needed)*
 
 ### Phase 3: Visual Insight Integration
-- [ ] Feed visual insights into `insight_engine.py` rules
+- [x] Feed visual insights into `insight_engine.py` rules
   - IF face_detected == false AND hook_score < 5 → "No human presence in hook reduces connection"
   - IF sharpness_score < 30 → "Low sharpness signals low production value"
   - IF subtitles_detected == false → "Missing captions reduce accessibility and watch time"
   - IF brightness_score < 20 OR > 235 → "Lighting is too dark/bright, hurts visual quality"
-- [ ] Seed vector DB with sample successful content (manual curation for MVP)
 - [ ] Write unit tests for image analyzer with sample frames
-- [ ] `ai/utils/audio_utils.py` — shared audio loading/normalization helpers
+- [x] `ai/utils/audio_utils.py` — shared audio loading/normalization helpers
 
 ---
 
