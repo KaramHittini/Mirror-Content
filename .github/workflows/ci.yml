@@ -102,7 +102,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: content-mirror/frontend/package-lock.json
+          cache-dependency-path: content-mirror/frontend/package.json
       - run: npm install
       - run: npm run build
 
@@ -118,7 +118,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: content-mirror/frontend/package-lock.json
+          cache-dependency-path: content-mirror/frontend/package.json
       - run: npm install
       - run: npm run lint
 
@@ -134,6 +134,6 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: content-mirror/frontend/package-lock.json
+          cache-dependency-path: content-mirror/frontend/package.json
       - run: npm install
       - run: npm test

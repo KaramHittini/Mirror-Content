@@ -84,7 +84,7 @@ Content Mirror uses AI to analyze uploaded videos and produce structured, human-
 | librosa | Audio analysis (RMS, SNR, silence) |
 | moviepy | Audio extraction from video |
 | OpenAI Whisper | Speech transcription with word timestamps |
-| Anthropic Claude | LLM insight generation (`claude-sonnet-4-6`) |
+| Google Gemini | LLM insight generation (`gemini-2.0-flash`) |
 | Pinecone | Vector DB for benchmark similarity search |
 | pytesseract | OCR for subtitle detection |
 | face-recognition | Face presence detection |
