@@ -40,7 +40,7 @@ export default function SettingsPage() {
   };
 
   const usagePct = user
-    ? Math.min(Math.round((user.analyses_used / user.analyses_limit) * 100), 100)
+    ? Math.min(Math.round((user.analyses_today / user.daily_limit) * 100), 100)
     : 0;
 
   if (isLoading) {
@@ -133,7 +133,7 @@ export default function SettingsPage() {
               </span>
             </div>
             <p className="text-gray-500 text-sm">
-              {user?.analyses_used} / {user?.analyses_limit} analyses used this month
+              {user?.analyses_today} / {user?.daily_limit} analyses used today
             </p>
           </div>
 
@@ -161,8 +161,8 @@ export default function SettingsPage() {
             ? "You're almost at your limit. "
             : `${100 - usagePct}% remaining. `}
           {user?.plan === "free"
-            ? "Upgrade to Pro for 100 analyses/month."
-            : "Resets at the start of each month."}
+            ? "Upgrade to Pro for 100 analyses/day."
+            : "Resets at midnight every day."}
         </p>
       </section>
 
