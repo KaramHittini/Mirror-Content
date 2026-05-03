@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { Zap } from "lucide-react";
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
@@ -15,62 +16,78 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-brand-500">
-            Content Mirror
-          </Link>
-          <p className="text-gray-400 mt-2 text-sm">Welcome back</p>
+    <div className="min-h-screen bg-surface-950 flex">
+      {/* Left panel — branding */}
+      <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-between p-10 border-r border-white/[0.06]">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-white" fill="white" />
+          </div>
+          <span className="font-semibold text-white text-sm">Content Mirror</span>
+        </Link>
+
+        <div>
+          <blockquote className="text-zinc-300 text-lg font-medium leading-snug mb-4">
+            &ldquo;I went from 2% to 12% watch time in two weeks just by fixing what
+            Content Mirror flagged.&rdquo;
+          </blockquote>
+          <p className="text-zinc-600 text-sm">— TikTok creator, 180k followers</p>
         </div>
+      </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-surface-900 border border-white/10 rounded-2xl p-8 space-y-5"
-        >
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-surface-800 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-surface-800 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
-          >
-            {isLoading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-brand-500 hover:underline">
-            Sign up free
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm animate-fade-in">
+          {/* Mobile logo */}
+          <Link href="/" className="flex items-center gap-2 justify-center mb-10 lg:hidden">
+            <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" fill="white" />
+            </div>
+            <span className="font-semibold text-white">Content Mirror</span>
           </Link>
-        </p>
+
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-white mb-1">Welcome back</h1>
+            <p className="text-zinc-500 text-sm">Sign in to your account</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="input"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="input"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button type="submit" disabled={isLoading} className="btn-primary w-full mt-2">
+              {isLoading ? "Signing in…" : "Sign in"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-zinc-600 mt-6">
+            No account?{" "}
+            <Link href="/signup" className="text-brand-400 hover:text-brand-300 transition-colors">
+              Create one free
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

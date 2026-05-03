@@ -8,36 +8,25 @@ interface ScoreCardProps {
 }
 
 export function ScoreCard({ label, value, type = "text", subtext }: ScoreCardProps) {
-  const isEmpty = value == null || value === "";
-  const valueStr = isEmpty ? "—" : String(value);
+  const empty = value == null || value === "";
+  const valueStr = empty ? "—" : String(value);
 
-  const colorClass = isEmpty
-    ? "text-gray-600"
-    : type === "score"
-    ? scoreColor(Number(value))
-    : type === "quality"
-    ? qualityColor(valueStr).split(" ")[0]
-    : "text-white";
-
-  const badgeClass = !isEmpty && type === "quality" ? qualityColor(valueStr) : "";
+  const numericColor = empty ? "text-zinc-700" : scoreColor(Number(value));
+  const badgeClass = !empty && type === "quality" ? qualityColor(valueStr) : "";
 
   return (
-    <div className="bg-surface-900 border border-white/10 rounded-xl p-4 flex flex-col gap-1">
-      <p className="text-gray-500 text-[11px] font-medium uppercase tracking-widest">
-        {label}
-      </p>
-      {!isEmpty && type === "quality" ? (
-        <span className={cn("text-sm font-semibold px-2 py-0.5 rounded-full capitalize w-fit", badgeClass)}>
+    <div className="card p-4 flex flex-col gap-2">
+      <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">{label}</p>
+      {!empty && type === "quality" ? (
+        <span className={cn("text-xs font-semibold px-2 py-1 rounded-lg capitalize w-fit", badgeClass)}>
           {valueStr}
         </span>
       ) : (
-        <p className={cn("text-2xl font-bold leading-none", colorClass)}>
-          {isEmpty ? "—" : type === "score" ? `${Number(value).toFixed(1)}/10` : valueStr}
+        <p className={cn("text-2xl font-bold leading-none", type === "score" ? numericColor : empty ? "text-zinc-700" : "text-white")}>
+          {empty ? "—" : type === "score" ? `${Number(value).toFixed(1)}/10` : valueStr}
         </p>
       )}
-      {subtext && (
-        <p className="text-gray-600 text-xs">{subtext}</p>
-      )}
+      {subtext && <p className="text-[11px] text-zinc-600">{subtext}</p>}
     </div>
   );
 }
