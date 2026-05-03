@@ -50,6 +50,16 @@ def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
     """
     audio_path = _extract_audio(video_path)
     try:
+        if not os.path.exists(audio_path) or os.path.getsize(audio_path) == 0:
+            return AudioAnalysisResult(
+                audio_quality="unknown",
+                silence_ratio=0.0,
+                snr_db=0.0,
+                transcript="",
+                wpm=0,
+                filler_word_ratio=0.0,
+                hook_message_present=False,
+            )
         y, sr = librosa.load(audio_path, sr=16000, mono=True)
 
         rms = _compute_rms(y)
@@ -77,10 +87,21 @@ def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
 
 
 def _extract_audio(video_path: str) -> str:
-    """Extract audio track to a temporary WAV file."""
+    """
+    Extract audio track to a temporary WAV file.
+
+    Returns the temp file path even if no audio track exists — the caller
+    checks os.path.getsize() > 0 before loading, so an empty file is safe.
+
+    Raises:
+        RuntimeError: If the file cannot be opened at all by moviepy.
+    """
     tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
     tmp.close()
     clip = VideoFileClip(video_path)
+    if clip.audio is None:
+        clip.close()
+        return tmp.name  # empty file — analyze_audio caller must guard
     clip.audio.write_audiofile(tmp.name, fps=16000, nbytes=2, codec="pcm_s16le", verbose=False, logger=None)
     clip.close()
     return tmp.name
