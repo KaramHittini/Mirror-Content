@@ -174,7 +174,7 @@ def _apply_rules(d: dict) -> list[dict]:
 
 def _generate_llm_insights(analysis_data: dict, rule_insights: list[dict]) -> list[dict]:
     """
-    Use Claude to generate 1–2 additional insights that rules may have missed,
+    Use Gemini to generate 1–2 additional insights that rules may have missed,
     or to add nuance to the overall performance picture.
     """
     import logging
