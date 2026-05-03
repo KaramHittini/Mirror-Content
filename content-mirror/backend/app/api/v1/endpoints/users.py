@@ -30,7 +30,8 @@ async def update_me(
 async def get_usage(current_user: User = Depends(get_current_user)):
     return UsageResponse(
         analyses_used=current_user.analyses_used,
-        analyses_limit=current_user.analyses_limit,
+        analyses_today=current_user.analyses_today,
+        daily_limit=current_user.daily_limit,
         plan=current_user.plan,
-        usage_pct=round((current_user.analyses_used / current_user.analyses_limit) * 100, 1),
+        usage_pct=round((current_user.analyses_today / current_user.daily_limit) * 100, 1),
     )
