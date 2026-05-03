@@ -47,8 +47,12 @@ def run_analysis(self: Task, analysis_id: str, storage_key: str):
         # Resolve file path
         storage_service_sync = _get_file_path(storage_key)
 
-        # Add ai/ to path so the pipeline can be imported
-        ai_path = Path(__file__).resolve().parents[3] / "ai"
+        # Locate the ai/ directory — works in Docker (/app/ai) and local dev
+        ai_path = next(
+            (p / "ai" for p in Path(__file__).resolve().parents
+             if (p / "ai" / "main.py").exists()),
+            Path("/app/ai"),
+        )
         if str(ai_path) not in sys.path:
             sys.path.insert(0, str(ai_path))
 
