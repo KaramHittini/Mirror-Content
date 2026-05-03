@@ -17,7 +17,7 @@ export function Navbar() {
           <div className="text-right">
             <p className="text-white text-sm font-medium">{user.name}</p>
             <p className="text-gray-500 text-xs">
-              {user.analyses_used}/{user.analyses_limit} analyses used
+              {user.analyses_today}/{user.daily_limit} today
             </p>
           </div>
           <div className="w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-500 text-sm font-bold">

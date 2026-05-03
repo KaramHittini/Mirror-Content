@@ -4,7 +4,8 @@ export interface User {
   email: string;
   plan: "free" | "pro";
   analyses_used: number;
-  analyses_limit: number;
+  analyses_today: number;
+  daily_limit: number;
   created_at: string;
 }
 

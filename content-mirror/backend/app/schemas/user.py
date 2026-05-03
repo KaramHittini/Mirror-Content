@@ -8,7 +8,8 @@ class UserResponse(BaseModel):
     email: EmailStr
     plan: str
     analyses_used: int
-    analyses_limit: int
+    analyses_today: int
+    daily_limit: int
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -30,6 +31,7 @@ class UserUpdateRequest(BaseModel):
 
 class UsageResponse(BaseModel):
     analyses_used: int
-    analyses_limit: int
+    analyses_today: int
+    daily_limit: int
     plan: str
     usage_pct: float
