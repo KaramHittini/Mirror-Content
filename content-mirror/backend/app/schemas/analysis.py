@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 
 
@@ -72,5 +72,10 @@ class AnalysisResponse(BaseModel):
     face_detected: bool | None = None
     subtitles_detected: bool | None = None
     created_at: datetime
+
+    @field_validator("weak_sections", "insights", "recommendations", "similar_content", mode="before")
+    @classmethod
+    def coerce_none_to_list(cls, v):
+        return v if v is not None else []
 
     model_config = {"from_attributes": True}

@@ -51,12 +51,18 @@ async def upload_video(
         status="pending",
     )
     db.add(analysis)
+    await db.flush()  # get ID without committing
+
+    try:
+        enqueue_analysis(str(analysis.id), storage_key)
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=503, detail="Analysis queue is unavailable. Please try again shortly.")
+
     current_user.analyses_used += 1
     current_user.analyses_today += 1
     await db.commit()
     await db.refresh(analysis)
-
-    enqueue_analysis(analysis.id, storage_key)
 
     return AnalysisUploadResponse(analysis_id=analysis.id)
 

@@ -42,6 +42,10 @@ function AnalyzeContent() {
     );
   }
 
+  const isPendingOrProcessing = result && (result.status === "pending" || result.status === "processing");
+  const isFailed = result && result.status === "failed";
+  const isCompleted = result && result.status === "completed";
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
@@ -60,7 +64,28 @@ function AnalyzeContent() {
         />
       )}
 
-      {result && (
+      {isPendingOrProcessing && (
+        <div className="bg-surface-900 border border-white/10 rounded-2xl p-10 text-center space-y-4">
+          <Loader2 className="w-10 h-10 text-brand-500 animate-spin mx-auto" />
+          <p className="text-white font-medium">Analysis in progress</p>
+          <p className="text-gray-500 text-sm">{result.filename}</p>
+        </div>
+      )}
+
+      {isFailed && (
+        <div className="bg-surface-900 border border-red-500/20 rounded-2xl p-10 text-center space-y-4">
+          <p className="text-red-400 font-medium">Analysis failed</p>
+          <p className="text-gray-500 text-sm">{result.filename}</p>
+          <button
+            onClick={handleNewAnalysis}
+            className="text-sm bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Try a new analysis
+          </button>
+        </div>
+      )}
+
+      {isCompleted && (
         <AnalysisResults result={result} onNewAnalysis={handleNewAnalysis} />
       )}
     </div>

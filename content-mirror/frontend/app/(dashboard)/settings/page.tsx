@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@/lib/types";
 import toast from "react-hot-toast";
-import { User as UserIcon, CreditCard, Shield, LogOut } from "lucide-react";
+import { User as UserIcon, CreditCard, Shield, LogOut, Lock } from "lucide-react";
 
 export default function SettingsPage() {
   const { logout } = useAuth();
@@ -18,6 +18,9 @@ export default function SettingsPage() {
   });
 
   const [name, setName] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (user?.name) setName(user.name);
@@ -32,11 +35,35 @@ export default function SettingsPage() {
     },
   });
 
+  const changePassword = useMutation({
+    mutationFn: (data: { current_password: string; new_password: string }) =>
+      api.patch("/users/me/password", data),
+    onSuccess: () => {
+      toast.success("Password updated");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(msg ?? "Failed to update password");
+    },
+  });
+
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && name.trim() !== user?.name) {
       updateProfile.mutate({ name: name.trim() });
     }
+  };
+
+  const handlePasswordSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    changePassword.mutate({ current_password: currentPassword, new_password: newPassword });
   };
 
   const usagePct = user
@@ -107,6 +134,65 @@ export default function SettingsPage() {
             className="bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             {updateProfile.isPending ? "Saving..." : "Save changes"}
+          </button>
+        </form>
+      </section>
+
+      {/* ── Password ─────────────────────────────────────────────────── */}
+      <section className="bg-surface-900 border border-white/10 rounded-xl p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Lock className="w-5 h-5 text-brand-500" />
+          <h2 className="text-white font-semibold">Change Password</h2>
+        </div>
+
+        <form onSubmit={handlePasswordSave} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              Current password
+            </label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full bg-surface-800 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+              placeholder="••••••••"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              New password
+            </label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full bg-surface-800 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+              placeholder="Min 8 characters"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              Confirm new password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full bg-surface-800 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={
+              changePassword.isPending ||
+              !currentPassword ||
+              newPassword.length < 8 ||
+              !confirmPassword
+            }
+            className="bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            {changePassword.isPending ? "Saving..." : "Update password"}
           </button>
         </form>
       </section>

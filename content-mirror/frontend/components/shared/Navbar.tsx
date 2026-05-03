@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { User } from "@/lib/types";
@@ -11,7 +12,7 @@ export function Navbar() {
   });
 
   return (
-    <header className="h-14 border-b border-white/10 flex items-center justify-end px-6 gap-4">
+    <header className="h-14 border-b border-white/10 flex items-center justify-end px-6 gap-4 shrink-0">
       {user && (
         <>
           <div className="text-right">
@@ -20,9 +21,13 @@ export function Navbar() {
               {user.analyses_today}/{user.daily_limit} today
             </p>
           </div>
-          <div className="w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-500 text-sm font-bold">
+          <Link
+            href="/settings"
+            className="w-8 h-8 rounded-full bg-brand-500/20 hover:bg-brand-500/35 flex items-center justify-center text-brand-500 text-sm font-bold transition-colors ring-2 ring-transparent hover:ring-brand-500/30"
+            title="Go to settings"
+          >
             {user.name[0].toUpperCase()}
-          </div>
+          </Link>
         </>
       )}
     </header>

@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { UploadCloud, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AnalysisProgress } from "@/lib/types";
+import toast from "react-hot-toast";
 
 interface VideoUploaderProps {
   onUpload: (file: File) => void;
@@ -101,9 +102,8 @@ export function VideoUploader({ onUpload, isUploading, progress, stage }: VideoU
           className="flex-1 bg-surface-900 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
         />
         <button
-          disabled
-          title="URL analysis coming in Phase 2"
-          className="bg-surface-800 text-gray-500 text-sm font-medium px-4 py-2.5 rounded-lg cursor-not-allowed border border-white/10"
+          onClick={() => toast("URL analysis is coming soon — for now, download the video and upload it directly.", { icon: "🚧", duration: 4000 })}
+          className="bg-surface-800 text-gray-400 hover:text-white text-sm font-medium px-4 py-2.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
         >
           Analyze URL
         </button>

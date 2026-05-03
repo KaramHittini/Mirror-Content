@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_session
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdateRequest, UsageResponse
+from app.schemas.user import UserResponse, UserUpdateRequest, UsageResponse, ChangePasswordRequest
 from app.core.dependencies import get_current_user
+from app.core.security import hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -35,3 +36,16 @@ async def get_usage(current_user: User = Depends(get_current_user)):
         plan=current_user.plan,
         usage_pct=round((current_user.analyses_today / current_user.daily_limit) * 100, 1),
     )
+
+
+@router.patch("/me/password", status_code=204)
+async def change_password(
+    body: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session),
+):
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    current_user.hashed_password = hash_password(body.new_password)
+    await db.commit()
+    return Response(status_code=204)
