@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
@@ -22,10 +23,15 @@ async def upload_video(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ):
-    if current_user.analyses_used >= current_user.analyses_limit:
+    # Reset daily counter if it's a new day
+    if current_user.analyses_reset_at != date.today():
+        current_user.analyses_today = 0
+        current_user.analyses_reset_at = date.today()
+
+    if current_user.analyses_today >= current_user.daily_limit:
         raise HTTPException(
             status_code=429,
-            detail=f"Monthly limit of {current_user.analyses_limit} analyses reached. Upgrade to Pro for more.",
+            detail=f"Daily limit of {current_user.daily_limit} analyses reached. Come back tomorrow or upgrade to Pro.",
         )
 
     if file.content_type not in ALLOWED_MIME:
@@ -46,6 +52,7 @@ async def upload_video(
     )
     db.add(analysis)
     current_user.analyses_used += 1
+    current_user.analyses_today += 1
     await db.commit()
     await db.refresh(analysis)
 
