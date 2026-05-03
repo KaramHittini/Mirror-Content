@@ -5,17 +5,15 @@ import { Plus } from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Track your content performance over time
-          </p>
+          <p className="text-gray-500 text-sm mb-1">Welcome back</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
         </div>
         <Link
           href="/analyze"
-          className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-lg shadow-brand-500/20"
         >
           <Plus className="w-4 h-4" />
           New Analysis
