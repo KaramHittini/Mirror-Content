@@ -31,7 +31,7 @@ Content Mirror uses AI to analyze uploaded videos and produce structured, human-
 | Face Detection | Checks for human presence — a key engagement signal |
 | Subtitle Detection | Detects whether captions exist in the lower-third region |
 | Weak Section Timeline | Visual timeline showing exactly where audience drop-off risk is highest |
-| AI Insights | Rule-based + Claude LLM explanations for every detected problem |
+| AI Insights | Rule-based + Gemini LLM explanations for every detected problem |
 | Recommendations | Up to 6 prioritized, specific fixes with example wording |
 | Benchmarking | Compares content against similar successful videos via vector similarity search |
 | PDF Export | Download and share full analysis reports |
@@ -160,7 +160,7 @@ content-mirror/
     │   ├── audio_analyzer.py           ← Audio quality, silence, SNR, Whisper
     │   └── image_analyzer.py           ← Sharpness, brightness, face, subtitles
     ├── engine/
-    │   ├── insight_engine.py           ← Rules + Claude → Problem/Cause/Evidence
+    │   ├── insight_engine.py           ← Rules + Gemini → Problem/Cause/Evidence
     │   ├── recommendation_engine.py    ← Maps insights → actionable fixes
     │   └── benchmark_engine.py         ← Pinecone similarity search
     └── utils/
@@ -170,154 +170,9 @@ content-mirror/
 
 ---
 
-## Team & Task Breakdown
+## Task Breakdown
 
-### Karam — Software Engineering
-
-#### Phase 1: Infrastructure
-- [ ] Initialize Git repo, configure `.env`, Docker Compose
-- [ ] PostgreSQL setup + Alembic migrations (users + analyses tables)
-- [ ] Redis setup for Celery queue and WebSocket pub/sub
-- [ ] S3/R2 bucket setup (or local storage for dev)
-
-#### Phase 2: Backend API
-- [ ] `core/config.py` — Pydantic settings
-- [ ] `core/security.py` — JWT access + refresh tokens, bcrypt hashing
-- [ ] `core/dependencies.py` — `get_current_user`, `get_db`
-- [ ] `models/` — SQLAlchemy ORM for User and Analysis
-- [ ] `schemas/` — Pydantic request/response types
-- [ ] Auth endpoints: `/register`, `/login`, `/refresh`, `/logout`
-- [ ] User endpoints: `/me`
-- [ ] Analysis endpoints: `/upload`, `/list`, `/{id}`
-- [ ] Report endpoints: `/export/pdf/{id}`, `/export/json/{id}`
-- [ ] `storage_service.py` — abstract local ↔ S3 uploads
-- [ ] `queue_service.py` — enqueue Celery jobs on upload
-- [ ] `analysis_worker.py` — Celery task, calls `ai/main.py`, writes results to DB
-- [ ] WebSocket `/ws/{analysis_id}` — real-time progress via Redis pub/sub
-- [ ] Rate limiting middleware (5/month free, 100/month pro)
-- [ ] CORS, logging, error handler middleware
-
-#### Phase 3: Frontend
-- [ ] Login + Signup pages with form validation
-- [ ] Dashboard layout (Sidebar + Navbar)
-- [ ] Dashboard page (stats + recent analyses)
-- [ ] Analyze page (upload UI + live results display)
-- [ ] History page (paginated list)
-- [ ] Settings page (profile, plan, usage)
-- [ ] `VideoUploader` — drag-and-drop + URL input field
-- [ ] `AnalysisResults` — full results display with all sections
-- [ ] `ScoreCard` — hook/pacing/audio/visual scores
-- [ ] `WeakSectionsTimeline` — visual timeline with red weak-section markers
-- [ ] `RecommendationsPanel` — priority-sorted actionable cards
-- [ ] `useAnalysis` hook — upload, WebSocket progress, polling fallback
-- [ ] `useAuth` hook — login, register, token refresh, protected routes
-- [ ] `lib/api.ts` — typed Axios client with auto token refresh
-
-#### Phase 4: DevOps & Quality
-- [ ] `backend/Dockerfile` + `frontend/Dockerfile`
-- [ ] GitHub Actions CI (lint, test, build on PR)
-- [ ] Backend tests (pytest) for auth + analysis endpoints
-- [ ] Frontend tests (Vitest + Testing Library)
-- [ ] PDF report export (WeasyPrint)
-- [ ] Sentry error tracking
-
----
-
-### Amr — AI Pipeline Architecture & Integration
-
-#### Phase 1: Pipeline Core
-- [ ] `ai/main.py` — `run_pipeline(video_path)` entry point, merges all analyzer outputs, returns final JSON
-- [ ] `ai/pipeline/preprocessor.py` — extract frames every 0.5s, extract audio track, normalize resolution
-- [ ] `ai/pipeline/segmenter.py` — split video into Hook (0–5s) / Body / CTA segments
-- [ ] `ai/pipeline/feature_extractor.py` — aggregate features per segment
-
-#### Phase 2: Insight & Recommendation Engines
-- [ ] `ai/engine/insight_engine.py`
-  - Rule-based layer: deterministic detection (weak hook, slow pacing, silence, audio quality, filler words, no subtitles, poor lighting)
-  - LLM layer: Claude generates 1–2 additional nuanced insights
-  - All insights follow: `Problem → Cause → Evidence` structure
-  - All LLM outputs use probability language: "Likely…", "Strong signal suggests…"
-- [ ] `ai/engine/recommendation_engine.py`
-  - Maps each insight problem type to a specific, actionable recommendation
-  - Each recommendation includes a concrete example fix
-  - Returns top 6 prioritized recommendations
-- [ ] Backend integration — connect `ai/main.py` to `analysis_worker.py`
-- [ ] Define and document the final JSON output contract
-- [ ] Unit tests for insight engine rules and recommendation mapping
-- [ ] Prompt engineering — iterate on Claude system prompts for quality and consistency
-
-#### Phase 3: Edge Cases & Validation
-- [ ] Handle very short videos (< 5 seconds)
-- [ ] Handle silent videos (no audio track)
-- [ ] Handle audio-only inputs
-- [ ] Validate all output matches the strict JSON schema before returning
-
----
-
-### Nour Alfarraj — Audio & Speech Analysis
-
-#### Phase 1: Audio Analyzer
-- [ ] `ai/analyzers/audio_analyzer.py`
-  - Extract audio track from video using `moviepy`
-  - RMS energy computation (volume level and consistency)
-  - Silence ratio detection (fraction of audio that is silent)
-  - SNR approximation (signal-to-noise ratio in dB)
-  - Speech energy detection
-  - Classify overall quality: `poor / average / good / excellent`
-  - Return: `{ audio_quality, silence_ratio, snr_db }`
-
-#### Phase 2: Whisper Transcription
-- [ ] `ai/analyzers/transcription_analyzer.py` *(new file)*
-  - Integrate OpenAI Whisper (local `base` model)
-  - Full transcript with word-level timestamps
-  - Speaking pace (WPM — words per minute)
-  - Filler word detection: `um`, `uh`, `like`, `you know`, `basically`, etc.
-  - Filler word ratio (filler count / total words)
-  - Hook message detection: are at least 5 words spoken in the first 5 seconds?
-  - Return: `{ transcript, wpm, filler_word_ratio, hook_message_present }`
-
-#### Phase 3: Insight Integration
-- [ ] Feed audio outputs into `insight_engine.py` rule layer:
-  - `silence_ratio > 0.4` → "Excessive silence gaps hurt engagement"
-  - `filler_word_ratio > 0.08` → "High filler words reduce perceived authority"
-  - `hook_message_present == false` → "Main message missing from opening"
-  - `audio_quality == poor` → "Poor audio quality — viewers may tune out"
-- [ ] Write unit tests with real sample audio clips
-- [ ] Document input format and expected output schema
-
----
-
-### Noor Adili — Visual Analysis & Benchmarking
-
-#### Phase 1: Image Analyzer
-- [ ] `ai/analyzers/image_analyzer.py`
-  - Sample 30 evenly-spaced frames across the video
-  - Sharpness: Laplacian variance per frame (higher = sharper)
-  - Brightness: HSV histogram mean (detect over/underexposure)
-  - Camera stability: inter-frame pixel difference
-  - Face detection: OpenCV Haar cascade across sampled frames
-  - Subtitle detection: edge density in lower-third region + pytesseract OCR fallback
-  - Classify: `poor / average / good / excellent`
-  - Return: `{ image_quality, sharpness_score, brightness_score, face_detected, subtitles_detected }`
-
-#### Phase 2: Benchmark Engine
-- [ ] `ai/engine/benchmark_engine.py`
-  - Design 7-dimensional feature vector schema for content fingerprinting
-  - Encode analysis output into normalized feature vector
-  - Query Pinecone for top-3 most similar successful videos
-  - Return: title, platform, why_successful, key_differences, hook_score
-  - Seed vector DB with manually curated successful content (MVP phase)
-  - Fallback to built-in seed examples when Pinecone is unavailable
-
-#### Phase 3: Insight Integration
-- [ ] Feed visual outputs into `insight_engine.py` rule layer:
-  - `face_detected == false` → "No human presence — weaker emotional connection"
-  - `sharpness_score < 40` → "Low visual sharpness signals poor production quality"
-  - `subtitles_detected == false` → "Missing captions reduce accessibility and watch time"
-  - `brightness_score < 30 or > 230` → "Lighting is too dark / overexposed"
-- [ ] Seed Pinecone index with at least 20 example successful content vectors
-- [ ] Write unit tests for image analyzer using sample frame images
-- [ ] `ai/utils/audio_utils.py` — shared audio loading and normalization helpers
+See [TASKS.md](TASKS.md) for the full per-member task checklist with completion status.
 
 ---
 
