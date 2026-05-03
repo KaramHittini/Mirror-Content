@@ -18,6 +18,7 @@ function AnalyzeContent() {
   const [loadedResult, setLoadedResult] = useState<AnalysisResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
 
+  // Initial fetch when navigating from history
   useEffect(() => {
     if (!loadId) return;
     setIsLoadingResult(true);
@@ -26,6 +27,26 @@ function AnalyzeContent() {
       .catch(() => router.push("/history"))
       .finally(() => setIsLoadingResult(false));
   }, [loadId, router]);
+
+  // Poll while the loaded result is still pending/processing
+  useEffect(() => {
+    if (!loadedResult) return;
+    if (loadedResult.status !== "pending" && loadedResult.status !== "processing") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const data = await getAnalysisResult(loadedResult.id);
+        setLoadedResult(data);
+        if (data.status === "completed" || data.status === "failed") {
+          clearInterval(interval);
+        }
+      } catch {
+        clearInterval(interval);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [loadedResult?.id, loadedResult?.status]);
 
   const result = loadedResult ?? analysisResult;
 
