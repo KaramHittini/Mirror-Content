@@ -7,7 +7,7 @@ import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { getAnalysisResult } from "@/lib/api";
 import type { AnalysisResult } from "@/lib/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, RotateCcw } from "lucide-react";
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
@@ -23,85 +23,78 @@ function AnalyzeContent() {
     if (!loadId) return;
     setIsLoadingResult(true);
     getAnalysisResult(loadId)
-      .then((data: AnalysisResult) => setLoadedResult(data))
+      .then((data) => setLoadedResult(data))
       .catch(() => router.push("/history"))
       .finally(() => setIsLoadingResult(false));
   }, [loadId, router]);
 
-  // Poll while the loaded result is still pending/processing
+  // Poll while loaded result is pending/processing
   useEffect(() => {
     if (!loadedResult) return;
     if (loadedResult.status !== "pending" && loadedResult.status !== "processing") return;
-
     const interval = setInterval(async () => {
       try {
         const data = await getAnalysisResult(loadedResult.id);
         setLoadedResult(data);
-        if (data.status === "completed" || data.status === "failed") {
-          clearInterval(interval);
-        }
-      } catch {
-        clearInterval(interval);
-      }
+        if (data.status === "completed" || data.status === "failed") clearInterval(interval);
+      } catch { clearInterval(interval); }
     }, 3000);
-
     return () => clearInterval(interval);
   }, [loadedResult?.id, loadedResult?.status]);
 
   const result = loadedResult ?? analysisResult;
-
-  const handleNewAnalysis = () => {
-    setLoadedResult(null);
-    router.push("/analyze");
-  };
+  const handleNewAnalysis = () => { setLoadedResult(null); router.push("/analyze"); };
 
   if (isLoadingResult) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
       </div>
     );
   }
 
-  const isPendingOrProcessing = result && (result.status === "pending" || result.status === "processing");
+  const isPending = result && (result.status === "pending" || result.status === "processing");
   const isFailed = result && result.status === "failed";
   const isCompleted = result && result.status === "completed";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Analyze Content</h1>
-        <p className="text-gray-400 text-sm mt-1">
-          Upload a video to get AI-powered insights on why it performs the way it does
-        </p>
-      </div>
-
+    <div className="max-w-4xl mx-auto space-y-5 animate-fade-in">
       {!result && (
-        <VideoUploader
-          onUpload={startAnalysis}
-          isUploading={isAnalyzing}
-          progress={progress}
-          stage={stage}
-        />
+        <>
+          <div>
+            <h1 className="text-xl font-bold text-white">New Analysis</h1>
+            <p className="text-sm text-zinc-600 mt-0.5">
+              Upload a video to get a full AI breakdown of why it performs the way it does
+            </p>
+          </div>
+          <VideoUploader
+            onUpload={startAnalysis}
+            isUploading={isAnalyzing}
+            progress={progress}
+            stage={stage}
+          />
+        </>
       )}
 
-      {isPendingOrProcessing && (
-        <div className="bg-surface-900 border border-white/10 rounded-2xl p-10 text-center space-y-4">
-          <Loader2 className="w-10 h-10 text-brand-500 animate-spin mx-auto" />
-          <p className="text-white font-medium">Analysis in progress</p>
-          <p className="text-gray-500 text-sm">{result.filename}</p>
+      {isPending && (
+        <div className="card p-12 text-center space-y-4">
+          <div className="w-12 h-12 mx-auto rounded-full border border-brand-500/30 flex items-center justify-center">
+            <Loader2 className="w-5 h-5 text-brand-400 animate-spin" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white">Analyzing {result.filename}</p>
+            <p className="text-xs text-zinc-600 mt-1">This usually takes 1–3 minutes</p>
+          </div>
         </div>
       )}
 
       {isFailed && (
-        <div className="bg-surface-900 border border-red-500/20 rounded-2xl p-10 text-center space-y-4">
-          <p className="text-red-400 font-medium">Analysis failed</p>
-          <p className="text-gray-500 text-sm">{result.filename}</p>
-          <button
-            onClick={handleNewAnalysis}
-            className="text-sm bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Try a new analysis
+        <div className="card border-red-500/20 p-12 text-center space-y-4">
+          <p className="text-sm font-semibold text-red-400">Analysis failed</p>
+          <p className="text-xs text-zinc-600">{result.filename}</p>
+          <button onClick={handleNewAnalysis} className="btn-primary text-xs px-4 py-2">
+            <RotateCcw className="w-3.5 h-3.5" />
+            Try again
           </button>
         </div>
       )}
@@ -117,8 +110,8 @@ export default function AnalyzePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
         </div>
       }
     >

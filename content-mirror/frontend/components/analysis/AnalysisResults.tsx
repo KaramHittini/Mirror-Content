@@ -5,7 +5,7 @@ import { WeakSectionsTimeline } from "./WeakSectionsTimeline";
 import { RecommendationsPanel } from "./RecommendationsPanel";
 import { severityColor, formatSeconds } from "@/lib/utils";
 import type { AnalysisResult } from "@/lib/types";
-import { Download, RotateCcw, AlertTriangle, CheckCircle } from "lucide-react";
+import { Download, RotateCcw, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
 import { exportReport } from "@/lib/api";
 
 interface AnalysisResultsProps {
@@ -19,32 +19,29 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
     const url = URL.createObjectURL(blob.data);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `content-mirror-report-${result.id}.${format}`;
+    a.download = `content-mirror-${result.id}.${format}`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 animate-slide-up">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-white font-semibold text-lg">Analysis Complete</h2>
-          <p className="text-gray-500 text-sm truncate max-w-sm">{result.filename}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-1">Analysis complete</p>
+          <p className="text-sm text-zinc-400 truncate max-w-sm">{result.filename}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => handleExport("pdf")}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white border border-white/10 hover:border-white/30 px-3 py-2 rounded-lg transition-colors"
+            className="btn-ghost text-xs px-3 py-2"
           >
-            <Download className="w-4 h-4" />
-            PDF
+            <Download className="w-3.5 h-3.5" />
+            Export
           </button>
-          <button
-            onClick={onNewAnalysis}
-            className="flex items-center gap-2 text-sm bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
+          <button onClick={onNewAnalysis} className="btn-primary text-xs px-3 py-2">
+            <RotateCcw className="w-3.5 h-3.5" />
             New analysis
           </button>
         </div>
@@ -54,52 +51,41 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <ScoreCard
           label="Hook Score"
-          value={result.hook_score ?? 0}
+          value={result.hook_score ?? null}
           type="score"
-          subtext={`${result.hook_duration_seconds}s hook`}
+          subtext={result.hook_duration_seconds ? `${result.hook_duration_seconds}s hook` : undefined}
         />
-        <ScoreCard
-          label="Pacing"
-          value={result.pacing}
-          type="text"
-        />
-        <ScoreCard
-          label="Audio Quality"
-          value={result.audio_quality}
-          type="quality"
-        />
-        <ScoreCard
-          label="Visual Quality"
-          value={result.image_quality}
-          type="quality"
-        />
+        <ScoreCard label="Pacing" value={result.pacing} type="text" />
+        <ScoreCard label="Audio" value={result.audio_quality} type="quality" />
+        <ScoreCard label="Visual" value={result.image_quality} type="quality" />
       </div>
 
       {/* Insights */}
       {result.insights.length > 0 && (
-        <div className="bg-surface-900 border border-white/10 rounded-xl p-5">
-          <h3 className="text-white font-semibold mb-4">Key Insights</h3>
-          <div className="space-y-3">
+        <div className="card p-5 space-y-3">
+          <p className="text-sm font-semibold text-white">Key Insights</p>
+          <div className="space-y-2">
             {result.insights.map((insight) => (
               <div
                 key={insight.id}
-                className={`border rounded-lg p-4 ${severityColor(insight.severity)}`}
+                className={`rounded-xl border p-4 ${severityColor(insight.severity)}`}
               >
                 <div className="flex items-start gap-3">
                   {insight.severity === "high" ? (
-                    <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
                   ) : (
-                    <CheckCircle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
+                    <CheckCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                   )}
-                  <div>
-                    <p className="text-white text-sm font-medium">{insight.problem}</p>
-                    <p className="text-gray-400 text-sm mt-1">
-                      <span className="text-gray-500">Why: </span>
-                      {insight.cause}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white leading-tight">{insight.problem}</p>
+                    <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                      <span className="text-zinc-600">Why: </span>{insight.cause}
                     </p>
-                    <p className="text-gray-500 text-xs mt-1 italic">{insight.evidence}</p>
+                    {insight.evidence && (
+                      <p className="text-[11px] text-zinc-700 mt-1 italic">{insight.evidence}</p>
+                    )}
                     {insight.timestamp_seconds !== undefined && (
-                      <span className="text-brand-500 text-xs mt-1 block font-mono">
+                      <span className="text-[11px] font-mono text-brand-400 mt-1 block">
                         @ {formatSeconds(insight.timestamp_seconds)}
                       </span>
                     )}
@@ -113,32 +99,35 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
 
       {/* Timeline */}
       <WeakSectionsTimeline
-        weakSections={result.weak_sections}
-        totalDuration={result.hook_duration_seconds * 10}
+        weakSections={result.weak_sections ?? []}
+        totalDuration={result.hook_duration_seconds ? result.hook_duration_seconds * 10 : 60}
       />
 
       {/* Recommendations */}
-      <RecommendationsPanel recommendations={result.recommendations} />
+      <RecommendationsPanel recommendations={result.recommendations ?? []} />
 
-      {/* Similar successful content */}
-      {result.similar_content.length > 0 && (
-        <div className="bg-surface-900 border border-white/10 rounded-xl p-5">
-          <h3 className="text-white font-semibold mb-4">Similar Successful Content</h3>
-          <div className="space-y-3">
+      {/* Similar content */}
+      {result.similar_content?.length > 0 && (
+        <div className="card p-5 space-y-4">
+          <p className="text-sm font-semibold text-white">Similar Successful Content</p>
+          <div className="space-y-2">
             {result.similar_content.map((item, i) => (
-              <div key={i} className="bg-surface-800 border border-white/5 rounded-lg p-4">
+              <div key={i} className="rounded-xl border border-white/[0.06] bg-surface-800 p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white text-sm font-medium">{item.title}</p>
-                  <span className="text-xs bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full capitalize border border-brand-500/20">
-                    {item.platform}
-                  </span>
+                  <p className="text-sm font-medium text-white">{item.title}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-700 text-zinc-400 capitalize border border-white/[0.06]">
+                      {item.platform}
+                    </span>
+                    {item.url && (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-zinc-600 hover:text-zinc-400">
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <p className="text-green-400 text-xs mb-1">
-                  Why it worked: {item.why_successful}
-                </p>
-                <p className="text-gray-500 text-xs">
-                  Key difference from your content: {item.key_differences}
-                </p>
+                <p className="text-xs text-emerald-400 mb-1">✓ {item.why_successful}</p>
+                <p className="text-xs text-zinc-600">{item.key_differences}</p>
               </div>
             ))}
           </div>
