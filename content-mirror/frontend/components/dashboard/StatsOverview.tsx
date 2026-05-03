@@ -11,15 +11,15 @@ export function StatsOverview() {
   });
 
   const usagePct = user
-    ? Math.round((user.analyses_used / user.analyses_limit) * 100)
+    ? Math.round((user.analyses_today / user.daily_limit) * 100)
     : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="bg-surface-900 border border-white/10 rounded-xl p-5">
         <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Analyses Used</p>
-        <p className="text-3xl font-bold text-white">{user?.analyses_used ?? "—"}</p>
-        <p className="text-gray-600 text-xs mt-1">of {user?.analyses_limit} this month</p>
+        <p className="text-3xl font-bold text-white">{user?.analyses_today ?? "—"}</p>
+        <p className="text-gray-600 text-xs mt-1">of {user?.daily_limit} today</p>
         <div className="mt-3 bg-surface-800 rounded-full h-1.5">
           <div
             className="bg-brand-500 h-1.5 rounded-full transition-all"
