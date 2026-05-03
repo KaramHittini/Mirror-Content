@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     ai_model: str = "gemini-2.0-flash"
 
+    # Monitoring
+    sentry_dsn: str = ""
+
     # Vector DB
     pinecone_api_key: str = ""
     pinecone_index_name: str = "content-mirror-benchmarks"

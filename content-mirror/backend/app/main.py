@@ -4,15 +4,28 @@ import logging.config
 from contextlib import asynccontextmanager
 
 import redis.asyncio as aioredis
+import sentry_sdk
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from app.api.v1.router import router
 from app.core.config import settings
 from app.db.database import create_tables
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
+
+# ── Sentry ─────────────────────────────────────────────────────────────────────
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.app_env,
+        integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+        traces_sample_rate=0.2,
+        send_default_pii=False,
+    )
 
 # ── Logging setup ──────────────────────────────────────────────────────────────
 logging.basicConfig(

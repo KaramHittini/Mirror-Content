@@ -77,7 +77,6 @@ def _apply_rules(d: dict) -> list[dict]:
     subtitles = d.get("subtitles_detected", False)
     sharpness = d.get("sharpness_score", 100.0)
     brightness = d.get("brightness_score", 128.0)
-    weak_sections = d.get("weak_sections", [])
 
     if hook_score < 4.0:
         insights.append(Insight(
@@ -178,6 +177,9 @@ def _generate_llm_insights(analysis_data: dict, rule_insights: list[dict]) -> li
     Use Claude to generate 1–2 additional insights that rules may have missed,
     or to add nuance to the overall performance picture.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     try:
         genai.configure(api_key=settings.gemini_api_key)
         model = genai.GenerativeModel(settings.ai_model)
@@ -219,5 +221,6 @@ Return only valid JSON, no explanation."""
                 raw = raw[4:]
         parsed = json.loads(raw)
         return [{"id": str(uuid.uuid4()), **item} for item in parsed if isinstance(item, dict)]
-    except Exception:
+    except Exception as exc:
+        logger.warning("Gemini LLM insights failed: %s", exc)
         return []
