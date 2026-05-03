@@ -64,14 +64,16 @@ export default function HistoryPage() {
             <div className="flex items-center gap-4">
               <span
                 className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  item.hook_score >= 7
+                  item.hook_score == null
+                    ? "bg-gray-500/10 text-gray-400"
+                    : item.hook_score >= 7
                     ? "bg-green-500/10 text-green-400"
                     : item.hook_score >= 4
                     ? "bg-yellow-500/10 text-yellow-400"
                     : "bg-red-500/10 text-red-400"
                 }`}
               >
-                Hook {item.hook_score.toFixed(1)}/10
+                {item.hook_score != null ? `Hook ${item.hook_score.toFixed(1)}/10` : item.status}
               </span>
               <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
             </div>

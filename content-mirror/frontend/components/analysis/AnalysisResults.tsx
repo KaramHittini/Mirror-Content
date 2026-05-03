@@ -54,7 +54,7 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <ScoreCard
           label="Hook Score"
-          value={result.hook_score}
+          value={result.hook_score ?? 0}
           type="score"
           subtext={`${result.hook_duration_seconds}s hook`}
         />

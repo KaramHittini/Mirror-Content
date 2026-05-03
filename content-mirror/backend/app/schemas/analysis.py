@@ -43,7 +43,7 @@ class AnalysisUploadResponse(BaseModel):
 class AnalysisSummary(BaseModel):
     id: str
     filename: str
-    hook_score: float
+    hook_score: float | None = None
     status: str
     created_at: datetime
 

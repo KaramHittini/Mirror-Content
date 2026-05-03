@@ -59,8 +59,8 @@ export function RecentAnalyses() {
                 {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
               </p>
             </div>
-            <span className={`text-sm font-bold ${scoreColor(item.hook_score)}`}>
-              {item.hook_score.toFixed(1)}
+            <span className={`text-sm font-bold ${scoreColor(item.hook_score ?? 0)}`}>
+              {item.hook_score != null ? item.hook_score.toFixed(1) : "—"}
             </span>
             <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
           </Link>
