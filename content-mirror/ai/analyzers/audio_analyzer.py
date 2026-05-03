@@ -37,12 +37,13 @@ class AudioAnalysisResult:
 FILLER_WORDS = {"um", "uh", "like", "you know", "basically", "literally", "actually", "so", "right"}
 
 
-def analyze_audio(video_path: str) -> AudioAnalysisResult:
+def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
     """
     Full audio analysis pipeline.
 
     Args:
         video_path: Path to the video file.
+        language: Language code for Whisper ('ar', 'en', or None for auto-detect).
 
     Returns:
         AudioAnalysisResult with quality classification and speech metrics.
@@ -56,7 +57,7 @@ def analyze_audio(video_path: str) -> AudioAnalysisResult:
         snr_db = _estimate_snr(y)
         audio_quality = _classify_audio_quality(rms, silence_ratio, snr_db)
 
-        transcript_data = _transcribe(audio_path)
+        transcript_data = _transcribe(audio_path, language=language)
         wpm = _compute_wpm(transcript_data["text"], transcript_data.get("duration", 60))
         filler_ratio = _compute_filler_ratio(transcript_data["text"])
         hook_message_present = _check_hook_message(transcript_data, seconds=5)
@@ -137,7 +138,7 @@ def _classify_audio_quality(rms: float, silence_ratio: float, snr_db: float) -> 
     return "poor"
 
 
-def _transcribe(audio_path: str) -> dict:
+def _transcribe(audio_path: str, language: str = "ar") -> dict:
     """
     Transcribe audio using OpenAI Whisper (local model).
     Falls back to empty transcript on failure.
@@ -145,7 +146,12 @@ def _transcribe(audio_path: str) -> dict:
     try:
         import whisper
         model = whisper.load_model("base")
-        result = model.transcribe(audio_path, word_timestamps=True)
+        result = model.transcribe(
+            audio_path,
+            word_timestamps=True,
+            language=language,
+            initial_prompt="تجاهل الموسيقى وركز على الكلام فقط" if language == "ar" else "Ignore background music and focus on speech only"
+        )
         duration = result.get("segments", [{}])[-1].get("end", 60) if result.get("segments") else 60
         return {"text": result.get("text", "").strip(), "segments": result.get("segments", []), "duration": duration}
     except Exception:
@@ -164,7 +170,7 @@ def _compute_filler_ratio(transcript: str) -> float:
     words = transcript.lower().split()
     if not words:
         return 0.0
-    filler_count = sum(1 for w in words if re.sub(r"[^a-z]", "", w) in FILLER_WORDS)
+    filler_count = sum(1 for w in words if re.sub(r"[^a-z\u0600-\u06FF]", "", w) in FILLER_WORDS)
     return filler_count / len(words)
 
 
