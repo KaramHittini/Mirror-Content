@@ -30,7 +30,7 @@ export function useAnalysis() {
         setProgress(Math.round(pct * 0.3));
       });
       setAnalysisId(analysis_id);
-      localStorage.setItem(PENDING_KEY, analysis_id);
+      sessionStorage.setItem(PENDING_KEY, analysis_id);
       connectWebSocket(analysis_id);
     } catch {
       setIsAnalyzing(false);
@@ -75,7 +75,7 @@ export function useAnalysis() {
       } else if (data.stage === "failed") {
         settled = true;
         ws.close();
-        localStorage.removeItem(PENDING_KEY);
+        sessionStorage.removeItem(PENDING_KEY);
         toast.error("Analysis failed. Please try again.");
         setIsAnalyzing(false);
       }
@@ -103,12 +103,12 @@ export function useAnalysis() {
         const result = await getAnalysisResult(id);
 
         if (result.status === "completed") {
-          localStorage.removeItem(PENDING_KEY);
+          sessionStorage.removeItem(PENDING_KEY);
           setProgress(100);
           setAnalysisResult(result);
           setIsAnalyzing(false);
         } else if (result.status === "failed") {
-          localStorage.removeItem(PENDING_KEY);
+          sessionStorage.removeItem(PENDING_KEY);
           toast.error("Analysis failed.");
           setIsAnalyzing(false);
         } else {
@@ -128,7 +128,7 @@ export function useAnalysis() {
   const fetchResult = async (id: string) => {
     try {
       const result = await getAnalysisResult(id);
-      localStorage.removeItem(PENDING_KEY);
+      sessionStorage.removeItem(PENDING_KEY);
       setAnalysisResult(result);
     } finally {
       setIsAnalyzing(false);
@@ -150,7 +150,7 @@ export function useAnalysis() {
     try {
       const { analysis_id } = await analyzeUrl(url);
       setAnalysisId(analysis_id);
-      localStorage.setItem(PENDING_KEY, analysis_id);
+      sessionStorage.setItem(PENDING_KEY, analysis_id);
       connectWebSocket(analysis_id);
     } catch {
       setIsAnalyzing(false);

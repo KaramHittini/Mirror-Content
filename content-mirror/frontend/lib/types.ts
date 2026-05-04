@@ -47,6 +47,7 @@ export interface AnalysisSummary {
   filename: string;
   hook_score: number | null;
   status: AnalysisResult["status"];
+  error_message: string | null;
   created_at: string;
 }
 

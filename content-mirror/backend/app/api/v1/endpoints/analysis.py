@@ -149,16 +149,40 @@ async def cancel_analysis(
 @router.get("", response_model=list[AnalysisSummary])
 async def list_analyses(
     limit: int = Query(default=20, le=100),
+    offset: int = Query(default=0, ge=0),
+    status: str | None = Query(default=None),
+    search: str | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session),
+):
+    q = select(Analysis).where(Analysis.user_id == current_user.id)
+    if status:
+        q = q.where(Analysis.status == status)
+    if search:
+        q = q.where(Analysis.filename.ilike(f"%{search}%"))
+    q = q.order_by(desc(Analysis.created_at)).limit(limit).offset(offset)
+    result = await db.execute(q)
+    return result.scalars().all()
+
+
+@router.delete("/{analysis_id}", status_code=204)
+async def delete_analysis(
+    analysis_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ):
     result = await db.execute(
-        select(Analysis)
-        .where(Analysis.user_id == current_user.id)
-        .order_by(desc(Analysis.created_at))
-        .limit(limit)
+        select(Analysis).where(
+            Analysis.id == analysis_id,
+            Analysis.user_id == current_user.id,
+        )
     )
-    return result.scalars().all()
+    analysis = result.scalar_one_or_none()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    await db.delete(analysis)
+    await db.commit()
+    return FastAPIResponse(status_code=204)
 
 
 @router.get("/{analysis_id}", response_model=AnalysisResponse)

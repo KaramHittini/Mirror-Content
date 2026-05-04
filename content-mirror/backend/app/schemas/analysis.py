@@ -67,6 +67,7 @@ class AnalysisSummary(BaseModel):
     filename: str
     hook_score: float | None = None
     status: str
+    error_message: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

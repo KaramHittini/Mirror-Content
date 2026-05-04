@@ -34,12 +34,12 @@ function AnalyzeContent() {
   // Resume an in-progress analysis after the user navigated away
   useEffect(() => {
     if (loadId) return;
-    const savedId = localStorage.getItem(PENDING_KEY);
+    const savedId = sessionStorage.getItem(PENDING_KEY);
     if (!savedId) return;
     setIsLoadingResult(true);
     getAnalysisResult(savedId)
       .then((data) => setLoadedResult(data))
-      .catch(() => localStorage.removeItem(PENDING_KEY))
+      .catch(() => sessionStorage.removeItem(PENDING_KEY))
       .finally(() => setIsLoadingResult(false));
   }, [loadId]);
 
@@ -47,7 +47,7 @@ function AnalyzeContent() {
   useEffect(() => {
     if (!loadedResult) return;
     if (loadedResult.status !== "pending" && loadedResult.status !== "processing") {
-      localStorage.removeItem(PENDING_KEY);
+      sessionStorage.removeItem(PENDING_KEY);
       return;
     }
     const interval = setInterval(async () => {
@@ -55,7 +55,7 @@ function AnalyzeContent() {
         const data = await getAnalysisResult(loadedResult.id);
         setLoadedResult(data);
         if (data.status === "completed" || data.status === "failed") {
-          localStorage.removeItem(PENDING_KEY);
+          sessionStorage.removeItem(PENDING_KEY);
           clearInterval(interval);
         }
       } catch { clearInterval(interval); }
@@ -72,7 +72,7 @@ function AnalyzeContent() {
     try {
       await cancelAnalysis(id);
     } finally {
-      localStorage.removeItem(PENDING_KEY);
+      sessionStorage.removeItem(PENDING_KEY);
       setLoadedResult(null);
       setIsCancelling(false);
       router.push("/analyze");
@@ -80,7 +80,7 @@ function AnalyzeContent() {
   };
 
   const handleNewAnalysis = () => {
-    localStorage.removeItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
     setLoadedResult(null);
     router.push("/analyze");
   };

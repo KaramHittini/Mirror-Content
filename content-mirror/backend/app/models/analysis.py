@@ -16,6 +16,7 @@ class Analysis(Base):
     status: Mapped[str] = mapped_column(
         SAEnum("pending", "processing", "completed", "failed", name="analysis_status_enum"),
         default="pending",
+        index=True,
     )
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
     celery_task_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
@@ -46,7 +47,7 @@ class Analysis(Base):
     subtitles_detected: Mapped[bool | None] = mapped_column(nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

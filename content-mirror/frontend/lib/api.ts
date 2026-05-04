@@ -64,11 +64,21 @@ export const analyzeUrl = (url: string) =>
 export const cancelAnalysis = (id: string) =>
   api.post(`/analyses/${id}/cancel`);
 
+export const deleteAnalysis = (id: string) =>
+  api.delete(`/analyses/${id}`);
+
 export const getAnalysisResult = (id: string) =>
   api.get(`/analyses/${id}`).then((r) => r.data);
 
-export const getAnalysisHistory = () =>
-  api.get("/analyses").then((r) => r.data);
+export interface AnalysisHistoryParams {
+  limit?: number;
+  offset?: number;
+  status?: string;
+  search?: string;
+}
+
+export const getAnalysisHistory = (params?: AnalysisHistoryParams) =>
+  api.get("/analyses", { params }).then((r) => r.data);
 
 export const exportReport = (id: string, format: "pdf" | "json") =>
   api.get(`/reports/export/${format}/${id}`, { responseType: "blob" });
