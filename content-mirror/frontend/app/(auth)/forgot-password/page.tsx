@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
             </div>
             <h1 className="text-xl font-bold text-white">Check your email</h1>
             <p className="text-sm text-zinc-500">
-              If <span className="text-zinc-300">{email}</span> is registered, you'll receive a reset link within a few minutes.
+              If <span className="text-zinc-300">{email}</span> is registered, you&apos;ll receive a reset link within a few minutes.
             </p>
             <Link href="/login" className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 transition-colors mt-4">
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
           <>
             <div className="mb-8">
               <h1 className="text-2xl font-bold text-white mb-1">Forgot your password?</h1>
-              <p className="text-zinc-500 text-sm">Enter your email and we'll send you a reset link.</p>
+              <p className="text-zinc-500 text-sm">Enter your email and we&apos;ll send you a reset link.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

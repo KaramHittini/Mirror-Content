@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -37,7 +38,7 @@ export function Navbar() {
             className="w-10 h-10 rounded-full bg-brand-500/20 hover:bg-brand-500/35 flex items-center justify-center text-brand-400 text-sm font-bold transition-all ring-2 ring-transparent hover:ring-brand-500/25 overflow-hidden shrink-0"
           >
             {user.avatar_url ? (
-              <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              <Image src={user.avatar_url} alt="Avatar" width={40} height={40} className="object-cover" />
             ) : (
               user.name[0].toUpperCase()
             )}

@@ -1,3 +1,5 @@
+import os
+import re
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
@@ -24,6 +26,26 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/content_mirror"
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _resolve_database_url(cls, v: str) -> str:
+        v = str(v)
+        # If Railway left unresolved template placeholders (e.g. <PGPORT>),
+        # reconstruct the URL from individual PG* environment variables.
+        if re.search(r"<[A-Z_]+>", v):
+            host = os.getenv("PGHOST", "localhost")
+            port = os.getenv("PGPORT", "5432")
+            user = os.getenv("PGUSER", "postgres")
+            password = os.getenv("PGPASSWORD", "postgres")
+            db = os.getenv("PGDATABASE", "content_mirror")
+            return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
+        # Normalise bare postgres:// / postgresql:// → asyncpg driver
+        if v.startswith("postgres://"):
+            return "postgresql+asyncpg://" + v[len("postgres://"):]
+        if v.startswith("postgresql://"):
+            return "postgresql+asyncpg://" + v[len("postgresql://"):]
+        return v
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"

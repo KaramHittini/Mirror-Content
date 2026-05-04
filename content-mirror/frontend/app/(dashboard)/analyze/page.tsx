@@ -63,6 +63,7 @@ function AnalyzeContent() {
       } catch { clearInterval(interval); }
     }, 3000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadedResult?.id, loadedResult?.status]);
 
   const result = loadedResult ?? analysisResult;

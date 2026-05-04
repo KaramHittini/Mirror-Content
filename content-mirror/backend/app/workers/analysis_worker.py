@@ -15,7 +15,18 @@ from sqlalchemy.orm import sessionmaker
 from app.workers.celery_app import celery_app
 from app.core.config import settings
 
-sync_engine = create_engine(settings.database_url.replace("+asyncpg", "+psycopg2"), pool_pre_ping=True)
+def _sync_db_url(url: str) -> str:
+    """Convert any Postgres URL variant to a psycopg2 sync URL."""
+    for prefix, replacement in (
+        ("postgresql+asyncpg://", "postgresql+psycopg2://"),
+        ("postgresql://", "postgresql+psycopg2://"),
+        ("postgres://", "postgresql+psycopg2://"),
+    ):
+        if url.startswith(prefix):
+            return replacement + url[len(prefix):]
+    return url
+
+sync_engine = create_engine(_sync_db_url(settings.database_url), pool_pre_ping=True)
 SyncSession = sessionmaker(bind=sync_engine)
 
 

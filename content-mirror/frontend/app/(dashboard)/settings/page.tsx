@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { api } from "@/lib/api";
 import { tokenStore } from "@/lib/tokenStore";
 import { useAuth } from "@/hooks/useAuth";
@@ -151,7 +152,7 @@ export default function SettingsPage() {
             disabled={uploadAvatar.isPending}
           >
             {user?.avatar_url ? (
-              <img src={user.avatar_url} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+              <Image src={user.avatar_url} alt="Avatar" width={48} height={48} className="rounded-full object-cover" />
             ) : (
               <div className="w-12 h-12 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-lg font-bold">
                 {user?.name?.[0]?.toUpperCase() ?? "?"}
