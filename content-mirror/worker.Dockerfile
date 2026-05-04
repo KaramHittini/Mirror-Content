@@ -19,9 +19,13 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 COPY backend/requirements.txt /tmp/backend_req.txt
 RUN pip install --no-cache-dir -r /tmp/backend_req.txt
 
+# openai-whisper needs pkg_resources at metadata-generation time
+RUN pip install --no-cache-dir setuptools && \
+    pip install --no-cache-dir "openai-whisper==20231117"
+
 # AI pipeline requirements (cv2, moviepy, whisper, face-recognition …)
 COPY ai/requirements.txt /tmp/ai_req.txt
-RUN pip install --no-cache-dir --no-build-isolation -r /tmp/ai_req.txt
+RUN pip install --no-cache-dir -r /tmp/ai_req.txt
 
 # Copy backend source — ai/ is mounted as a volume at /app/ai
 COPY backend/ .
