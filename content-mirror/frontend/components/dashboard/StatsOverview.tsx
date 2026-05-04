@@ -5,8 +5,12 @@ import { api } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { Zap, TrendingUp } from "lucide-react";
 
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse rounded bg-white/[0.06] ${className ?? ""}`} />;
+}
+
 export function StatsOverview() {
-  const { data: user } = useQuery<User>({
+  const { data: user, isLoading } = useQuery<User>({
     queryKey: ["me"],
     queryFn: () => api.get("/users/me").then((r) => r.data),
   });
@@ -18,6 +22,23 @@ export function StatsOverview() {
   const r = 20;
   const circ = 2 * Math.PI * r;
   const dash = circ - (usagePct / 100) * circ;
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="card p-5 flex items-center gap-4">
+            <Skeleton className="w-14 h-14 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-7 w-24" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -45,7 +66,7 @@ export function StatsOverview() {
         <div>
           <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider mb-1">Today</p>
           <p className="text-2xl font-bold text-white leading-none">
-            {user?.analyses_today ?? "—"}
+            {user?.analyses_today}
             <span className="text-zinc-600 text-sm font-normal">/{user?.daily_limit}</span>
           </p>
           <p className="text-zinc-600 text-xs mt-1">analyses used</p>
@@ -60,7 +81,7 @@ export function StatsOverview() {
           </div>
           <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Plan</p>
         </div>
-        <p className="text-2xl font-bold text-white capitalize mb-1">{user?.plan ?? "—"}</p>
+        <p className="text-2xl font-bold text-white capitalize mb-1">{user?.plan}</p>
         {user?.plan === "free" ? (
           <p className="text-xs text-zinc-600">
             Upgrade for{" "}
@@ -81,12 +102,12 @@ export function StatsOverview() {
           </div>
           <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">All time</p>
         </div>
-        <p className="text-2xl font-bold text-white mb-1">{user?.analyses_used ?? "—"}</p>
+        <p className="text-2xl font-bold text-white mb-1">{user?.analyses_used}</p>
         <p className="text-xs text-zinc-600">
           since{" "}
           {user?.created_at
             ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
-            : "—"}
+            : ""}
         </p>
       </div>
     </div>

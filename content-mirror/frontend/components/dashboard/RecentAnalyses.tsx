@@ -37,8 +37,8 @@ function StatusBadge({ item }: { item: AnalysisSummary }) {
 
 export function RecentAnalyses() {
   const { data: analyses, isLoading } = useQuery<AnalysisSummary[]>({
-    queryKey: ["analyses"],
-    queryFn: () => api.get("/analyses?limit=5").then((r) => r.data),
+    queryKey: ["analyses", { limit: 5 }],
+    queryFn: () => api.get("/analyses", { params: { limit: 5 } }).then((r) => r.data),
   });
 
   return (

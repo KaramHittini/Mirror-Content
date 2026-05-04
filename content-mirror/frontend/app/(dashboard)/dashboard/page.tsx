@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import { RecentAnalyses } from "@/components/dashboard/RecentAnalyses";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+
+export const metadata: Metadata = { title: "Dashboard | Content Mirror" };
 
 export default function DashboardPage() {
   return (
@@ -17,8 +21,12 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <StatsOverview />
-      <RecentAnalyses />
+      <ErrorBoundary>
+        <StatsOverview />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <RecentAnalyses />
+      </ErrorBoundary>
     </div>
   );
 }

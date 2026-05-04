@@ -9,6 +9,7 @@ import type { User } from "@/lib/types";
 import toast from "react-hot-toast";
 import { User as UserIcon, CreditCard, Lock, LogOut, Trash2, Camera } from "lucide-react";
 import { useRef } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 function Section({ icon: Icon, title, children }: {
   icon: React.ElementType;
@@ -27,6 +28,7 @@ function Section({ icon: Icon, title, children }: {
 }
 
 export default function SettingsPage() {
+  usePageTitle("Settings");
   const { logout } = useAuth();
   const qc = useQueryClient();
 

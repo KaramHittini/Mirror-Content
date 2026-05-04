@@ -8,6 +8,7 @@ import { useAnalysis } from "@/hooks/useAnalysis";
 import { getAnalysisResult, cancelAnalysis } from "@/lib/api";
 import type { AnalysisResult } from "@/lib/types";
 import { Loader2, RotateCcw, Square } from "lucide-react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const PENDING_KEY = "pending_analysis_id";
 
@@ -16,6 +17,7 @@ function AnalyzeContent() {
   const router = useRouter();
   const loadId = searchParams.get("id");
 
+  usePageTitle("Analyze");
   const { analysisResult, isAnalyzing, startAnalysis, startUrlAnalysis, progress, stage, analysisId } = useAnalysis();
   const [loadedResult, setLoadedResult] = useState<AnalysisResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);

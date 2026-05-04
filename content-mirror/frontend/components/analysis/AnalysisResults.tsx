@@ -5,8 +5,9 @@ import { WeakSectionsTimeline } from "./WeakSectionsTimeline";
 import { RecommendationsPanel } from "./RecommendationsPanel";
 import { severityColor, formatSeconds } from "@/lib/utils";
 import type { AnalysisResult } from "@/lib/types";
-import { Download, RotateCcw, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
+import { Download, RotateCcw, AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
 import { exportReport } from "@/lib/api";
+import { useState } from "react";
 
 interface AnalysisResultsProps {
   result: AnalysisResult;
@@ -14,14 +15,22 @@ interface AnalysisResultsProps {
 }
 
 export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps) {
+  const [exporting, setExporting] = useState<"pdf" | "json" | null>(null);
+
   const handleExport = async (format: "pdf" | "json") => {
-    const blob = await exportReport(result.id, format);
-    const url = URL.createObjectURL(blob.data);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `content-mirror-${result.id}.${format}`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (exporting) return;
+    setExporting(format);
+    try {
+      const blob = await exportReport(result.id, format);
+      const url = URL.createObjectURL(blob.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `content-mirror-${result.id}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(null);
+    }
   };
 
   return (
@@ -35,16 +44,18 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => handleExport("pdf")}
-            className="btn-ghost text-xs px-3 py-2"
+            disabled={!!exporting}
+            className="btn-ghost text-xs px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Download className="w-3.5 h-3.5" />
+            {exporting === "pdf" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             PDF
           </button>
           <button
             onClick={() => handleExport("json")}
-            className="btn-ghost text-xs px-3 py-2"
+            disabled={!!exporting}
+            className="btn-ghost text-xs px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Download className="w-3.5 h-3.5" />
+            {exporting === "json" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             JSON
           </button>
           <button onClick={onNewAnalysis} className="btn-primary text-xs px-3 py-2">
