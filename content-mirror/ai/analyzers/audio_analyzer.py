@@ -37,7 +37,7 @@ class AudioAnalysisResult:
 FILLER_WORDS = {"um", "uh", "like", "you know", "basically", "literally", "actually", "so", "right"}
 
 
-def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
+def analyze_audio(video_path: str, language: str | None = None) -> AudioAnalysisResult:
     """
     Full audio analysis pipeline.
 
@@ -159,20 +159,18 @@ def _classify_audio_quality(rms: float, silence_ratio: float, snr_db: float) -> 
     return "poor"
 
 
-def _transcribe(audio_path: str, language: str = "ar") -> dict:
+def _transcribe(audio_path: str, language: str | None = None) -> dict:
     """
     Transcribe audio using OpenAI Whisper (local model).
-    Falls back to empty transcript on failure.
+    language=None triggers Whisper auto-detection. Falls back to empty transcript on failure.
     """
     try:
         import whisper
         model = whisper.load_model("base")
-        result = model.transcribe(
-            audio_path,
-            word_timestamps=True,
-            language=language,
-            initial_prompt="تجاهل الموسيقى وركز على الكلام فقط" if language == "ar" else "Ignore background music and focus on speech only"
-        )
+        kwargs: dict = {"word_timestamps": True, "initial_prompt": "Ignore background music and focus on speech only"}
+        if language:
+            kwargs["language"] = language
+        result = model.transcribe(audio_path, **kwargs)
         duration = result.get("segments", [{}])[-1].get("end", 60) if result.get("segments") else 60
         return {"text": result.get("text", "").strip(), "segments": result.get("segments", []), "duration": duration}
     except Exception:

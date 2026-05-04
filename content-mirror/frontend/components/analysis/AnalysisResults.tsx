@@ -38,7 +38,14 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
             className="btn-ghost text-xs px-3 py-2"
           >
             <Download className="w-3.5 h-3.5" />
-            Export
+            PDF
+          </button>
+          <button
+            onClick={() => handleExport("json")}
+            className="btn-ghost text-xs px-3 py-2"
+          >
+            <Download className="w-3.5 h-3.5" />
+            JSON
           </button>
           <button onClick={onNewAnalysis} className="btn-primary text-xs px-3 py-2">
             <RotateCcw className="w-3.5 h-3.5" />

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Zap, CheckCircle } from "lucide-react";
 
@@ -14,6 +15,11 @@ const perks = [
 
 export default function SignupPage() {
   const { register, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) router.replace("/dashboard");
+  }, [router]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
