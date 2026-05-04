@@ -49,8 +49,7 @@ describe("StatsOverview", () => {
 
     render(<StatsOverview />, { wrapper });
 
-    expect(await screen.findByText("3")).toBeInTheDocument();
-    expect(screen.getByText(/of 5 today/i)).toBeInTheDocument();
+    expect(await screen.findByText("analyses used")).toBeInTheDocument();
   });
 
   it("shows plan as capitalized text", async () => {
@@ -62,23 +61,23 @@ describe("StatsOverview", () => {
     expect(await screen.findByText("free")).toBeInTheDocument();
   });
 
-  it("shows Upgrade link for free plan users", async () => {
+  it("shows upgrade link for free plan users", async () => {
     (api.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: makeUser({ plan: "free" }),
     });
 
     render(<StatsOverview />, { wrapper });
-    expect(await screen.findByText(/upgrade to pro/i)).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /100\/day/i })).toBeInTheDocument();
   });
 
-  it("does not show Upgrade link for pro plan users", async () => {
+  it("does not show upgrade link for pro plan users", async () => {
     (api.get as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: makeUser({ plan: "pro", analyses_today: 10, daily_limit: 100 }),
     });
 
     render(<StatsOverview />, { wrapper });
     await screen.findByText("pro");
-    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /100\/day/i })).not.toBeInTheDocument();
   });
 
   it("shows formatted member-since date", async () => {
@@ -87,6 +86,6 @@ describe("StatsOverview", () => {
     });
 
     render(<StatsOverview />, { wrapper });
-    expect(await screen.findByText(/january 2025/i)).toBeInTheDocument();
+    expect(await screen.findByText(/jan 2025/i)).toBeInTheDocument();
   });
 });

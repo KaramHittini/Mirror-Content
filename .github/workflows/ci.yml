@@ -81,7 +81,7 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install -y ffmpeg tesseract-ocr
       - name: Install AI requirements
-        run: pip install setuptools && pip install -r requirements.txt
+        run: pip install "setuptools==69.5.1" && pip install --no-build-isolation -r requirements.txt
       - name: Install backend requirements (for app.core.config)
         run: pip install -r ../backend/requirements.txt
       - run: pytest tests/ -v --tb=short

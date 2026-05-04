@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
@@ -9,6 +10,17 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_secret_key: str = "change-me"
     app_allowed_origins: list[str] = ["http://localhost:3000"]
+
+    @field_validator("app_allowed_origins", mode="before")
+    @classmethod
+    def parse_origins(cls, v):
+        if not isinstance(v, str):
+            return v
+        v = v.strip()
+        if v.startswith("["):
+            import json
+            return json.loads(v)
+        return [o.strip() for o in v.split(",") if o.strip()]
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/content_mirror"
