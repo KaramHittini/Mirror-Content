@@ -2,12 +2,14 @@ import json
 import logging
 import logging.config
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import redis.asyncio as aioredis
 import sentry_sdk
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
@@ -40,6 +42,7 @@ logger = logging.getLogger("content_mirror")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting Content Mirror API (env=%s)", settings.app_env)
+    Path(settings.local_upload_dir).mkdir(parents=True, exist_ok=True)
     await create_tables()
     logger.info("Database tables ready")
     yield
@@ -67,6 +70,7 @@ app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120)
 
 app.include_router(router)
+app.mount("/static", StaticFiles(directory=settings.local_upload_dir), name="static")
 
 
 # ── Global exception handler ───────────────────────────────────────────────────

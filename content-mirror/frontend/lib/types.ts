@@ -6,6 +6,7 @@ export interface User {
   analyses_used: number;
   analyses_today: number;
   daily_limit: number;
+  avatar_url: string | null;
   created_at: string;
 }
 

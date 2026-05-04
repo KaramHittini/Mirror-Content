@@ -6,7 +6,8 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@/lib/types";
 import toast from "react-hot-toast";
-import { User as UserIcon, CreditCard, Lock, LogOut, Trash2 } from "lucide-react";
+import { User as UserIcon, CreditCard, Lock, LogOut, Trash2, Camera } from "lucide-react";
+import { useRef } from "react";
 
 function Section({ icon: Icon, title, children }: {
   icon: React.ElementType;
@@ -34,15 +35,19 @@ export default function SettingsPage() {
   });
 
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user?.name) setName(user.name);
-  }, [user?.name]);
+    if (user?.email) setEmail(user.email);
+  }, [user?.name, user?.email]);
 
   const updateProfile = useMutation({
     mutationFn: (data: { name: string }) =>
@@ -74,6 +79,32 @@ export default function SettingsPage() {
       updateProfile.mutate({ name: name.trim() });
     }
   };
+
+  const changeEmail = useMutation({
+    mutationFn: (data: { new_email: string; current_password: string }) =>
+      api.patch("/users/me/email", data).then((r) => r.data),
+    onSuccess: () => {
+      toast.success("Email updated");
+      setEmailPassword("");
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(msg ?? "Failed to update email");
+    },
+  });
+
+  const uploadAvatar = useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      return api.post("/users/me/avatar", form, { headers: { "Content-Type": "multipart/form-data" } }).then((r) => r.data);
+    },
+    onSuccess: () => {
+      toast.success("Profile picture updated");
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
 
   const deleteAccount = useMutation({
     mutationFn: () => api.delete("/users/me"),
@@ -111,12 +142,33 @@ export default function SettingsPage() {
       {/* Profile */}
       <Section icon={UserIcon} title="Profile">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-lg font-bold shrink-0">
-            {user?.name?.[0]?.toUpperCase() ?? "?"}
-          </div>
+          <button
+            className="relative group shrink-0"
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={uploadAvatar.isPending}
+          >
+            {user?.avatar_url ? (
+              <img src={user.avatar_url} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-lg font-bold">
+                {user?.name?.[0]?.toUpperCase() ?? "?"}
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <Camera className="w-4 h-4 text-white" />
+            </div>
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar.mutate(f); }}
+          />
           <div>
             <p className="text-sm font-semibold text-white">{user?.name}</p>
-            <p className="text-xs text-zinc-600">{user?.email}</p>
+            <p className="text-xs text-zinc-500">{user?.email}</p>
+            <p className="text-[11px] text-zinc-700 mt-0.5">Click avatar to change photo</p>
           </div>
         </div>
 
@@ -131,21 +183,45 @@ export default function SettingsPage() {
               placeholder="Your name"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-zinc-500 mb-1.5">Email</label>
-            <input
-              type="email"
-              value={user?.email ?? ""}
-              disabled
-              className="input opacity-40 cursor-not-allowed"
-            />
-          </div>
           <button
             type="submit"
             disabled={updateProfile.isPending || !name.trim() || name.trim() === user?.name}
             className="btn-primary text-xs px-4 py-2"
           >
             {updateProfile.isPending ? "Saving…" : "Save changes"}
+          </button>
+        </form>
+      </Section>
+
+      {/* Email */}
+      <Section icon={UserIcon} title="Change Email">
+        <form onSubmit={(e) => { e.preventDefault(); changeEmail.mutate({ new_email: email, current_password: emailPassword }); }} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-zinc-500 mb-1.5">New email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-zinc-500 mb-1.5">Current password</label>
+            <input
+              type="password"
+              value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)}
+              className="input"
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={changeEmail.isPending || !email || !emailPassword || email === user?.email}
+            className="btn-primary text-xs px-4 py-2"
+          >
+            {changeEmail.isPending ? "Saving…" : "Update email"}
           </button>
         </form>
       </Section>

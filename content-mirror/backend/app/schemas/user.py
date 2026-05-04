@@ -10,6 +10,7 @@ class UserResponse(BaseModel):
     analyses_used: int
     analyses_today: int
     daily_limit: int
+    avatar_url: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -39,6 +40,11 @@ class ChangePasswordRequest(BaseModel):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         return v
+
+
+class ChangeEmailRequest(BaseModel):
+    new_email: EmailStr
+    current_password: str
 
 
 class UsageResponse(BaseModel):
