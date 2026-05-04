@@ -50,7 +50,7 @@ export default function HistoryPage() {
         </div>
         <Link href="/analyze" className="btn-primary text-xs px-3.5 py-2">
           <Plus className="w-3.5 h-3.5" />
-          New analysis
+          <span className="hidden sm:inline">New analysis</span>
         </Link>
       </div>
 

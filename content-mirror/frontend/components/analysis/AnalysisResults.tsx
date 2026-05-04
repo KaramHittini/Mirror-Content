@@ -27,7 +27,7 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
   return (
     <div className="space-y-4 animate-slide-up">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-1">Analysis complete</p>
           <p className="text-sm text-zinc-400 truncate max-w-sm">{result.filename}</p>
@@ -113,9 +113,9 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
           <div className="space-y-2">
             {result.similar_content.map((item, i) => (
               <div key={i} className="rounded-xl border border-white/[0.06] bg-surface-800 p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-white">{item.title}</p>
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                  <p className="text-sm font-medium text-white flex-1 min-w-0">{item.title}</p>
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-surface-700 text-zinc-400 capitalize border border-white/[0.06]">
                       {item.platform}
                     </span>
