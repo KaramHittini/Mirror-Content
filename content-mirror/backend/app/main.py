@@ -31,11 +31,18 @@ if settings.sentry_dsn:
     )
 
 # ── Logging setup ──────────────────────────────────────────────────────────────
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
-    datefmt="%H:%M:%S",
-)
+if settings.app_env == "production":
+    from app.core.logging_config import JSONFormatter
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(JSONFormatter())
+    logging.root.handlers = [_handler]
+    logging.root.setLevel(logging.INFO)
+else:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
+        datefmt="%H:%M:%S",
+    )
 logger = logging.getLogger("content_mirror")
 
 
@@ -134,4 +141,26 @@ async def analysis_websocket(websocket: WebSocket, analysis_id: str):
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health", tags=["health"])
 async def health():
-    return {"status": "ok", "env": settings.app_env}
+    from sqlalchemy import text
+    checks: dict[str, str] = {}
+
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+        checks["db"] = "ok"
+    except Exception:
+        checks["db"] = "error"
+
+    try:
+        r = aioredis.from_url(settings.redis_url, socket_connect_timeout=2)
+        await r.ping()
+        await r.aclose()
+        checks["redis"] = "ok"
+    except Exception:
+        checks["redis"] = "error"
+
+    healthy = all(v == "ok" for v in checks.values())
+    return JSONResponse(
+        status_code=200 if healthy else 503,
+        content={"status": "ok" if healthy else "degraded", "checks": checks, "env": settings.app_env},
+    )

@@ -1,4 +1,4 @@
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
@@ -70,6 +70,15 @@ class Settings(BaseSettings):
     # Celery
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
+
+    @model_validator(mode="after")
+    def _validate_production_secrets(self) -> "Settings":
+        if self.app_env == "production":
+            if self.app_secret_key in ("change-me", ""):
+                raise ValueError("APP_SECRET_KEY must be set to a strong value in production")
+            if self.jwt_secret in ("change-me-jwt", ""):
+                raise ValueError("JWT_SECRET must be set to a strong value in production")
+        return self
 
 
 @lru_cache
