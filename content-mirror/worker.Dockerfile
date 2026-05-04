@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r /tmp/backend_req.txt
 
 # AI pipeline requirements (cv2, moviepy, whisper, face-recognition …)
 COPY ai/requirements.txt /tmp/ai_req.txt
-RUN pip install --no-cache-dir -r /tmp/ai_req.txt
+RUN pip install --no-cache-dir --no-build-isolation -r /tmp/ai_req.txt
 
 # Copy backend source — ai/ is mounted as a volume at /app/ai
 COPY backend/ .
