@@ -9,6 +9,8 @@ import { getAnalysisResult } from "@/lib/api";
 import type { AnalysisResult } from "@/lib/types";
 import { Loader2, RotateCcw } from "lucide-react";
 
+const PENDING_KEY = "pending_analysis_id";
+
 function AnalyzeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -18,7 +20,7 @@ function AnalyzeContent() {
   const [loadedResult, setLoadedResult] = useState<AnalysisResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
 
-  // Initial fetch when navigating from history
+  // Load a specific analysis opened from history (?id=...)
   useEffect(() => {
     if (!loadId) return;
     setIsLoadingResult(true);
@@ -28,22 +30,44 @@ function AnalyzeContent() {
       .finally(() => setIsLoadingResult(false));
   }, [loadId, router]);
 
-  // Poll while loaded result is pending/processing
+  // Resume an in-progress analysis after the user navigated away
+  useEffect(() => {
+    if (loadId) return;
+    const savedId = localStorage.getItem(PENDING_KEY);
+    if (!savedId) return;
+    setIsLoadingResult(true);
+    getAnalysisResult(savedId)
+      .then((data) => setLoadedResult(data))
+      .catch(() => localStorage.removeItem(PENDING_KEY))
+      .finally(() => setIsLoadingResult(false));
+  }, [loadId]);
+
+  // Poll while a loaded result is still pending/processing
   useEffect(() => {
     if (!loadedResult) return;
-    if (loadedResult.status !== "pending" && loadedResult.status !== "processing") return;
+    if (loadedResult.status !== "pending" && loadedResult.status !== "processing") {
+      localStorage.removeItem(PENDING_KEY);
+      return;
+    }
     const interval = setInterval(async () => {
       try {
         const data = await getAnalysisResult(loadedResult.id);
         setLoadedResult(data);
-        if (data.status === "completed" || data.status === "failed") clearInterval(interval);
+        if (data.status === "completed" || data.status === "failed") {
+          localStorage.removeItem(PENDING_KEY);
+          clearInterval(interval);
+        }
       } catch { clearInterval(interval); }
     }, 3000);
     return () => clearInterval(interval);
   }, [loadedResult?.id, loadedResult?.status]);
 
   const result = loadedResult ?? analysisResult;
-  const handleNewAnalysis = () => { setLoadedResult(null); router.push("/analyze"); };
+  const handleNewAnalysis = () => {
+    localStorage.removeItem(PENDING_KEY);
+    setLoadedResult(null);
+    router.push("/analyze");
+  };
 
   if (isLoadingResult) {
     return (
@@ -83,7 +107,9 @@ function AnalyzeContent() {
           </div>
           <div>
             <p className="text-sm font-semibold text-white">Analyzing {result.filename}</p>
-            <p className="text-xs text-zinc-600 mt-1">This usually takes 1–3 minutes</p>
+            <p className="text-xs text-zinc-600 mt-1">
+              This usually takes 1–3 minutes. You can leave this page and come back — your analysis will still be here.
+            </p>
           </div>
         </div>
       )}

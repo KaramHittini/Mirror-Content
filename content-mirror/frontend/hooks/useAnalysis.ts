@@ -5,6 +5,8 @@ import { uploadVideo, getAnalysisResult } from "@/lib/api";
 import type { AnalysisResult, AnalysisProgress } from "@/lib/types";
 import toast from "react-hot-toast";
 
+const PENDING_KEY = "pending_analysis_id";
+
 export function useAnalysis() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -20,9 +22,10 @@ export function useAnalysis() {
 
     try {
       const { analysis_id } = await uploadVideo(file, (pct) => {
-        setProgress(Math.round(pct * 0.3)); // upload = 0-30%
+        setProgress(Math.round(pct * 0.3));
       });
       setAnalysisId(analysis_id);
+      localStorage.setItem(PENDING_KEY, analysis_id);
       connectWebSocket(analysis_id);
     } catch {
       setIsAnalyzing(false);
@@ -44,7 +47,17 @@ export function useAnalysis() {
 
     wsRef.current = ws;
 
+    // If no progress message arrives within 10s, WS won't deliver — fall back to polling
+    const wsTimeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        ws.close();
+        pollResult(id);
+      }
+    }, 10_000);
+
     ws.onmessage = (event) => {
+      clearTimeout(wsTimeout);
       const data: AnalysisProgress = JSON.parse(event.data);
       setStage(data.stage);
       setProgress(data.progress);
@@ -56,29 +69,24 @@ export function useAnalysis() {
       } else if (data.stage === "failed") {
         settled = true;
         ws.close();
+        localStorage.removeItem(PENDING_KEY);
         toast.error("Analysis failed. Please try again.");
         setIsAnalyzing(false);
       }
     };
 
     ws.onerror = () => {
-      if (!settled) {
-        settled = true;
-        pollResult(id);
-      }
+      clearTimeout(wsTimeout);
+      if (!settled) { settled = true; pollResult(id); }
     };
 
     ws.onclose = () => {
-      // If WS closed without completing (e.g. network blip), fall back to polling
-      if (!settled) {
-        settled = true;
-        pollResult(id);
-      }
+      clearTimeout(wsTimeout);
+      if (!settled) { settled = true; pollResult(id); }
     };
   };
 
   const pollResult = (id: string) => {
-    // Simulate progress from 35% → 90% while waiting, so the UI doesn't freeze
     let fakeProgress = 35;
     setProgress(fakeProgress);
     setStage("preprocessing");
@@ -89,15 +97,16 @@ export function useAnalysis() {
 
         if (result.status === "completed") {
           clearInterval(interval);
+          localStorage.removeItem(PENDING_KEY);
           setProgress(100);
           setAnalysisResult(result);
           setIsAnalyzing(false);
         } else if (result.status === "failed") {
           clearInterval(interval);
+          localStorage.removeItem(PENDING_KEY);
           toast.error("Analysis failed.");
           setIsAnalyzing(false);
         } else {
-          // Still in progress — advance the fake progress bar slowly
           fakeProgress = Math.min(fakeProgress + 4, 90);
           setProgress(fakeProgress);
         }
@@ -111,6 +120,7 @@ export function useAnalysis() {
   const fetchResult = async (id: string) => {
     try {
       const result = await getAnalysisResult(id);
+      localStorage.removeItem(PENDING_KEY);
       setAnalysisResult(result);
     } finally {
       setIsAnalyzing(false);
