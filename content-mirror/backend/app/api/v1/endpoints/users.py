@@ -49,3 +49,13 @@ async def change_password(
     current_user.hashed_password = hash_password(body.new_password)
     await db.commit()
     return Response(status_code=204)
+
+
+@router.delete("/me", status_code=204)
+async def delete_account(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session),
+):
+    await db.delete(current_user)
+    await db.commit()
+    return Response(status_code=204)

@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@/lib/types";
 import toast from "react-hot-toast";
-import { User as UserIcon, CreditCard, Lock, LogOut } from "lucide-react";
+import { User as UserIcon, CreditCard, Lock, LogOut, Trash2 } from "lucide-react";
 
 function Section({ icon: Icon, title, children }: {
   icon: React.ElementType;
@@ -37,6 +37,8 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   useEffect(() => {
     if (user?.name) setName(user.name);
@@ -72,6 +74,14 @@ export default function SettingsPage() {
       updateProfile.mutate({ name: name.trim() });
     }
   };
+
+  const deleteAccount = useMutation({
+    mutationFn: () => api.delete("/users/me"),
+    onSuccess: () => {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+    },
+  });
 
   const handlePasswordSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +236,7 @@ export default function SettingsPage() {
 
       {/* Account / Danger zone */}
       <Section icon={LogOut} title="Account">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-medium text-white">Sign out</p>
             <p className="text-xs text-zinc-600 mt-0.5">
@@ -244,7 +254,63 @@ export default function SettingsPage() {
             Sign out
           </button>
         </div>
+        <div className="border-t border-white/[0.06] pt-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-red-400">Delete account</p>
+            <p className="text-xs text-zinc-600 mt-0.5">Permanently delete your account and all data</p>
+          </div>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 px-3 py-2 rounded-lg transition-all"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete
+          </button>
+        </div>
       </Section>
+
+      {/* Delete account modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="card w-full max-w-md mx-4 p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center">
+                <Trash2 className="w-4 h-4 text-red-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Delete account</p>
+                <p className="text-xs text-zinc-500">This action is permanent and cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400">
+              Type <span className="font-mono text-white bg-surface-800 px-1.5 py-0.5 rounded">delete-my-account</span> to confirm
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              className="input"
+              placeholder="delete-my-account"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+                className="btn-ghost text-xs px-4 py-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteAccount.mutate()}
+                disabled={deleteConfirmText !== "delete-my-account" || deleteAccount.isPending}
+                className="flex items-center gap-2 text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 px-4 py-2 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {deleteAccount.isPending ? "Deleting…" : "Permanently delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
