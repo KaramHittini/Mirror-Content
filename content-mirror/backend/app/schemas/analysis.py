@@ -1,5 +1,6 @@
 from pydantic import BaseModel, field_validator, AnyHttpUrl
 from datetime import datetime
+from urllib.parse import urlparse
 
 
 class WeakSection(BaseModel):
@@ -35,8 +36,25 @@ class SimilarContent(BaseModel):
     hook_score: float
 
 
+_ALLOWED_HOSTNAMES = {
+    "youtube.com", "www.youtube.com", "youtu.be",
+    "tiktok.com", "www.tiktok.com", "vm.tiktok.com",
+    "instagram.com", "www.instagram.com",
+}
+
+
 class URLAnalysisRequest(BaseModel):
     url: AnyHttpUrl
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v):
+        hostname = urlparse(str(v)).hostname or ""
+        if hostname not in _ALLOWED_HOSTNAMES:
+            raise ValueError(
+                "Only YouTube, TikTok, and Instagram URLs are supported."
+            )
+        return v
 
 
 class AnalysisUploadResponse(BaseModel):

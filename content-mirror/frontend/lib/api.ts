@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import { tokenStore } from "./tokenStore";
 
 export const api = axios.create({
   baseURL: "/api",
@@ -7,7 +8,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = tokenStore.get();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -25,11 +26,11 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-        localStorage.setItem("access_token", data.access_token);
+        tokenStore.set(data.access_token);
         original.headers.Authorization = `Bearer ${data.access_token}`;
         return api(original);
       } catch {
-        localStorage.removeItem("access_token");
+        tokenStore.clear();
         window.location.href = "/login";
       }
     }

@@ -32,3 +32,4 @@ async def create_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(512)"))
+        await conn.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS celery_task_id VARCHAR(256)"))

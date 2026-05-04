@@ -15,7 +15,8 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from app.api.v1.router import router
 from app.core.config import settings
-from app.db.database import create_tables
+from app.core.security import decode_token
+from app.db.database import create_tables, AsyncSessionLocal
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 
@@ -87,6 +88,30 @@ async def unhandled_exception_handler(request, exc: Exception):
 # ── WebSocket — real-time analysis progress ────────────────────────────────────
 @app.websocket("/ws/{analysis_id}")
 async def analysis_websocket(websocket: WebSocket, analysis_id: str):
+    from sqlalchemy import select as sa_select
+    from app.models.analysis import Analysis
+
+    # Authenticate via token query param (httpOnly cookie can't be read by JS for WS)
+    token = websocket.query_params.get("token", "")
+    payload = decode_token(token)
+    if not payload or payload.get("type") != "access":
+        await websocket.close(code=4001)
+        return
+
+    user_id = payload["sub"]
+
+    # Verify the analysis belongs to this user
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            sa_select(Analysis).where(
+                Analysis.id == analysis_id,
+                Analysis.user_id == user_id,
+            )
+        )
+        if not result.scalar_one_or_none():
+            await websocket.close(code=4003)
+            return
+
     await websocket.accept()
     r = aioredis.from_url(settings.redis_url)
     pubsub = r.pubsub()

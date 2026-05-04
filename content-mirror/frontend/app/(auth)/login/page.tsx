@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { useAuth } from "@/hooks/useAuth";
+import { tokenStore } from "@/lib/tokenStore";
 import { Zap } from "lucide-react";
 
 export default function LoginPage() {
@@ -11,7 +13,10 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorage.getItem("access_token")) router.replace("/dashboard");
+    if (tokenStore.get()) { router.replace("/dashboard"); return; }
+    axios.post("/api/auth/refresh", {}, { withCredentials: true })
+      .then(({ data }) => { tokenStore.set(data.access_token); router.replace("/dashboard"); })
+      .catch(() => {});
   }, [router]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

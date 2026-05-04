@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { uploadVideo, analyzeUrl, getAnalysisResult } from "@/lib/api";
+import { tokenStore } from "@/lib/tokenStore";
 import type { AnalysisResult, AnalysisProgress } from "@/lib/types";
 import toast from "react-hot-toast";
 
@@ -34,7 +35,8 @@ export function useAnalysis() {
   };
 
   const connectWebSocket = (id: string) => {
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/${id}`;
+    const token = tokenStore.get();
+    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/${id}${token ? `?token=${encodeURIComponent(token)}` : ""}`;
     let settled = false;
     let ws: WebSocket;
 

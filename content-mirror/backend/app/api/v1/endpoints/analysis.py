@@ -1,5 +1,6 @@
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi.responses import Response as FastAPIResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
@@ -17,23 +18,31 @@ ALLOWED_MIME = {"video/mp4", "video/quicktime", "video/x-msvideo", "video/x-matr
 MAX_SIZE_BYTES = 500 * 1024 * 1024  # 500 MB
 
 
+async def _check_and_increment_limit(user_id: str, db: AsyncSession) -> User:
+    """Re-fetch the user row with a write lock to prevent race conditions on the daily limit."""
+    result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
+    user = result.scalar_one()
+
+    if user.analyses_reset_at != date.today():
+        user.analyses_today = 0
+        user.analyses_reset_at = date.today()
+
+    if user.analyses_today >= user.daily_limit:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily limit of {user.daily_limit} analyses reached. Come back tomorrow or upgrade to Pro.",
+        )
+    return user
+
+
 @router.post("/upload", response_model=AnalysisUploadResponse, status_code=202)
 async def upload_video(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ):
-    # Reset daily counter if it's a new day
-    if current_user.analyses_reset_at != date.today():
-        current_user.analyses_today = 0
-        current_user.analyses_reset_at = date.today()
-
-    if current_user.analyses_today >= current_user.daily_limit:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Daily limit of {current_user.daily_limit} analyses reached. Come back tomorrow or upgrade to Pro.",
-        )
-
     if file.content_type not in ALLOWED_MIME:
         raise HTTPException(status_code=415, detail="Unsupported file type. Upload MP4, MOV, AVI, or MKV.")
 
@@ -41,26 +50,30 @@ async def upload_video(
     if len(content) > MAX_SIZE_BYTES:
         raise HTTPException(status_code=413, detail="File too large. Maximum size is 500 MB.")
 
+    # Lock user row before checking/incrementing quota (prevents race condition)
+    user = await _check_and_increment_limit(current_user.id, db)
+
     storage = StorageService()
     storage_key = await storage.upload(content, file.filename or "video.mp4")
 
     analysis = Analysis(
-        user_id=current_user.id,
+        user_id=user.id,
         filename=file.filename or "video.mp4",
         storage_key=storage_key,
         status="pending",
     )
     db.add(analysis)
-    await db.flush()  # get ID without committing
+    await db.flush()
 
     try:
-        enqueue_analysis(str(analysis.id), storage_key)
+        task_id = enqueue_analysis(str(analysis.id), storage_key)
+        analysis.celery_task_id = task_id
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=503, detail="Analysis queue is unavailable. Please try again shortly.")
 
-    current_user.analyses_used += 1
-    current_user.analyses_today += 1
+    user.analyses_used += 1
+    user.analyses_today += 1
     await db.commit()
     await db.refresh(analysis)
 
@@ -73,18 +86,11 @@ async def analyze_url(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ):
-    if current_user.analyses_reset_at != date.today():
-        current_user.analyses_today = 0
-        current_user.analyses_reset_at = date.today()
-
-    if current_user.analyses_today >= current_user.daily_limit:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Daily limit of {current_user.daily_limit} analyses reached.",
-        )
+    # Lock user row before checking/incrementing quota (prevents race condition)
+    user = await _check_and_increment_limit(current_user.id, db)
 
     analysis = Analysis(
-        user_id=current_user.id,
+        user_id=user.id,
         filename=str(body.url),
         storage_key=None,
         status="pending",
@@ -94,13 +100,14 @@ async def analyze_url(
 
     try:
         from app.workers.analysis_worker import download_and_run_analysis
-        download_and_run_analysis.delay(str(analysis.id), str(body.url))
+        task = download_and_run_analysis.delay(str(analysis.id), str(body.url))
+        analysis.celery_task_id = task.id
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=503, detail="Analysis queue is unavailable. Please try again shortly.")
 
-    current_user.analyses_used += 1
-    current_user.analyses_today += 1
+    user.analyses_used += 1
+    user.analyses_today += 1
     await db.commit()
     await db.refresh(analysis)
 
@@ -124,10 +131,18 @@ async def cancel_analysis(
         raise HTTPException(status_code=404, detail="Analysis not found")
     if analysis.status not in ("pending", "processing"):
         raise HTTPException(status_code=400, detail="Analysis is not in progress")
+
+    # Actually revoke the Celery task so the worker stops processing
+    if analysis.celery_task_id:
+        try:
+            from app.workers.celery_app import celery_app
+            celery_app.control.revoke(analysis.celery_task_id, terminate=True, signal="SIGTERM")
+        except Exception:
+            pass  # best-effort; still mark as failed in DB
+
     analysis.status = "failed"
     analysis.error_message = "Cancelled by user"
     await db.commit()
-    from fastapi.responses import Response as FastAPIResponse
     return FastAPIResponse(status_code=204)
 
 
