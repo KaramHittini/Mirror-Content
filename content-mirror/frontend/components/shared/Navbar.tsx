@@ -23,8 +23,8 @@ export function Navbar() {
   const title = PAGE_TITLES[pathname] ?? "";
 
   return (
-    <header className="h-13 border-b border-white/[0.06] flex items-center px-6 gap-4 shrink-0 bg-surface-950">
-      <p className="text-sm font-semibold text-white flex-1">{title}</p>
+    <header className="h-14 flex items-center px-6 gap-4 shrink-0 bg-surface-950">
+      <p className="text-lg font-bold text-white flex-1">{title}</p>
 
       {user && (
         <div className="flex items-center gap-3">
@@ -34,9 +34,13 @@ export function Navbar() {
           <Link
             href="/settings"
             title="Settings"
-            className="w-8 h-8 rounded-full bg-brand-500/20 hover:bg-brand-500/35 flex items-center justify-center text-brand-400 text-xs font-bold transition-all ring-2 ring-transparent hover:ring-brand-500/25"
+            className="w-10 h-10 rounded-full bg-brand-500/20 hover:bg-brand-500/35 flex items-center justify-center text-brand-400 text-sm font-bold transition-all ring-2 ring-transparent hover:ring-brand-500/25 overflow-hidden shrink-0"
           >
-            {user.name[0].toUpperCase()}
+            {user.avatar_url ? (
+              <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              user.name[0].toUpperCase()
+            )}
           </Link>
         </div>
       )}
