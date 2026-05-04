@@ -7,6 +7,9 @@ import type { AnalysisResult, AnalysisProgress } from "@/lib/types";
 import toast from "react-hot-toast";
 
 const PENDING_KEY = "pending_analysis_id";
+const POLL_INITIAL_MS = 3_000;
+const POLL_MAX_MS = 15_000;
+const POLL_BACKOFF = 1.5;
 
 export function useAnalysis() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
@@ -15,6 +18,7 @@ export function useAnalysis() {
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState<AnalysisProgress["stage"] | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startAnalysis = async (file: File) => {
     setIsAnalyzing(true);
@@ -49,7 +53,7 @@ export function useAnalysis() {
 
     wsRef.current = ws;
 
-    // If no progress message arrives within 10s, WS won't deliver — fall back to polling
+    // If no progress message arrives within 10s, fall back to polling
     const wsTimeout = setTimeout(() => {
       if (!settled) {
         settled = true;
@@ -90,33 +94,35 @@ export function useAnalysis() {
 
   const pollResult = (id: string) => {
     let fakeProgress = 35;
+    let delay = POLL_INITIAL_MS;
     setProgress(fakeProgress);
     setStage("preprocessing");
 
-    const interval = setInterval(async () => {
+    const poll = async () => {
       try {
         const result = await getAnalysisResult(id);
 
         if (result.status === "completed") {
-          clearInterval(interval);
           localStorage.removeItem(PENDING_KEY);
           setProgress(100);
           setAnalysisResult(result);
           setIsAnalyzing(false);
         } else if (result.status === "failed") {
-          clearInterval(interval);
           localStorage.removeItem(PENDING_KEY);
           toast.error("Analysis failed.");
           setIsAnalyzing(false);
         } else {
           fakeProgress = Math.min(fakeProgress + 4, 90);
           setProgress(fakeProgress);
+          delay = Math.min(delay * POLL_BACKOFF, POLL_MAX_MS);
+          pollRef.current = setTimeout(poll, delay);
         }
       } catch {
-        clearInterval(interval);
         setIsAnalyzing(false);
       }
-    }, 3000);
+    };
+
+    pollRef.current = setTimeout(poll, delay);
   };
 
   const fetchResult = async (id: string) => {
@@ -130,7 +136,10 @@ export function useAnalysis() {
   };
 
   useEffect(() => {
-    return () => wsRef.current?.close();
+    return () => {
+      wsRef.current?.close();
+      if (pollRef.current) clearTimeout(pollRef.current);
+    };
   }, []);
 
   const startUrlAnalysis = async (url: string) => {

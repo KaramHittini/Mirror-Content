@@ -11,6 +11,7 @@ class UserResponse(BaseModel):
     analyses_today: int
     daily_limit: int
     avatar_url: str | None = None
+    email_verified: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -7,6 +7,7 @@ export interface User {
   analyses_today: number;
   daily_limit: number;
   avatar_url: string | null;
+  email_verified: boolean;
   created_at: string;
 }
 

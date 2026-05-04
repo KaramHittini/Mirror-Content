@@ -58,6 +58,15 @@ class Settings(BaseSettings):
     rate_limit_free_analyses_per_month: int = 5
     rate_limit_pro_analyses_per_month: int = 100
 
+    # Email (SMTP)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "noreply@content-mirror.app"
+    smtp_tls: bool = True
+    app_base_url: str = "https://mirror-content.vercel.app"
+
     # Celery
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"

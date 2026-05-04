@@ -1,5 +1,3 @@
-import os
-import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File
@@ -103,7 +101,8 @@ async def upload_avatar(
     avatar_dir.mkdir(parents=True, exist_ok=True)
     filename = f"{current_user.id}.{ext}"
     (avatar_dir / filename).write_bytes(contents)
-    current_user.avatar_url = f"/static/avatars/{filename}"
+    import time as _time
+    current_user.avatar_url = f"/static/avatars/{filename}?v={int(_time.time())}"
     await db.commit()
     await db.refresh(current_user)
     return current_user

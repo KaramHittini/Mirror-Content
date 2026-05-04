@@ -17,6 +17,7 @@ class User(Base):
     analyses_today: Mapped[int] = mapped_column(Integer, default=0)
     analyses_reset_at: Mapped[date] = mapped_column(Date, default=lambda: date.today())
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True, default=None)
+    email_verified: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

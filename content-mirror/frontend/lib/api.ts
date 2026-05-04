@@ -72,3 +72,12 @@ export const getAnalysisHistory = () =>
 
 export const exportReport = (id: string, format: "pdf" | "json") =>
   api.get(`/reports/export/${format}/${id}`, { responseType: "blob" });
+
+export const forgotPassword = (email: string) =>
+  api.post("/auth/forgot-password", { email });
+
+export const resetPassword = (token: string, new_password: string) =>
+  api.post("/auth/reset-password", { token, new_password });
+
+export const resendVerification = () =>
+  api.post("/auth/resend-verification");

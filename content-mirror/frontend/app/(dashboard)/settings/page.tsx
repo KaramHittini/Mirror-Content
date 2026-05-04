@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import { tokenStore } from "@/lib/tokenStore";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@/lib/types";
 import toast from "react-hot-toast";
@@ -109,7 +110,7 @@ export default function SettingsPage() {
   const deleteAccount = useMutation({
     mutationFn: () => api.delete("/users/me"),
     onSuccess: () => {
-      localStorage.removeItem("access_token");
+      tokenStore.clear();
       window.location.href = "/login";
     },
   });

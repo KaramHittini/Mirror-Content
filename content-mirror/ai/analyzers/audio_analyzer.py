@@ -159,14 +159,24 @@ def _classify_audio_quality(rms: float, silence_ratio: float, snr_db: float) -> 
     return "poor"
 
 
+_whisper_model = None
+
+
+def _get_whisper_model():
+    global _whisper_model
+    if _whisper_model is None:
+        import whisper
+        _whisper_model = whisper.load_model("base")
+    return _whisper_model
+
+
 def _transcribe(audio_path: str, language: str | None = None) -> dict:
     """
-    Transcribe audio using OpenAI Whisper (local model).
+    Transcribe audio using OpenAI Whisper (local model, cached per worker process).
     language=None triggers Whisper auto-detection. Falls back to empty transcript on failure.
     """
     try:
-        import whisper
-        model = whisper.load_model("base")
+        model = _get_whisper_model()
         kwargs: dict = {"word_timestamps": True, "initial_prompt": "Ignore background music and focus on speech only"}
         if language:
             kwargs["language"] = language
