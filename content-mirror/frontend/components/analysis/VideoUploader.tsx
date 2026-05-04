@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 
 interface VideoUploaderProps {
   onUpload: (file: File) => void;
+  onAnalyzeUrl: (url: string) => void;
   isUploading: boolean;
   progress: number;
   stage?: AnalysisProgress["stage"] | null;
@@ -23,7 +24,7 @@ const STAGE_LABELS: Record<string, string> = {
   generating_insights: "Generating insights…",
 };
 
-export function VideoUploader({ onUpload, isUploading, progress, stage }: VideoUploaderProps) {
+export function VideoUploader({ onUpload, onAnalyzeUrl, isUploading, progress, stage }: VideoUploaderProps) {
   const [urlInput, setUrlInput] = useState("");
 
   const onDrop = useCallback(
@@ -113,17 +114,15 @@ export function VideoUploader({ onUpload, isUploading, progress, stage }: VideoU
           type="url"
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && urlInput.trim()) { onAnalyzeUrl(urlInput.trim()); setUrlInput(""); } }}
           placeholder="Paste a TikTok, Instagram or YouTube URL…"
           className="input flex-1 text-xs"
+          disabled={isUploading}
         />
         <button
-          onClick={() =>
-            toast("URL analysis is coming soon. For now, download the video and upload it.", {
-              icon: "🚧",
-              duration: 4000,
-            })
-          }
-          className="btn-ghost text-xs px-4 whitespace-nowrap"
+          onClick={() => { if (urlInput.trim()) { onAnalyzeUrl(urlInput.trim()); setUrlInput(""); } }}
+          disabled={isUploading || !urlInput.trim()}
+          className="btn-ghost text-xs px-4 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Analyze URL
         </button>

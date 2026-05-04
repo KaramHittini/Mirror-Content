@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, AnyHttpUrl
 from datetime import datetime
 
 
@@ -33,6 +33,10 @@ class SimilarContent(BaseModel):
     why_successful: str
     key_differences: str
     hook_score: float
+
+
+class URLAnalysisRequest(BaseModel):
+    url: AnyHttpUrl
 
 
 class AnalysisUploadResponse(BaseModel):

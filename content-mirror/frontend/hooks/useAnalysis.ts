@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { uploadVideo, getAnalysisResult } from "@/lib/api";
+import { uploadVideo, analyzeUrl, getAnalysisResult } from "@/lib/api";
 import type { AnalysisResult, AnalysisProgress } from "@/lib/types";
 import toast from "react-hot-toast";
 
@@ -131,5 +131,21 @@ export function useAnalysis() {
     return () => wsRef.current?.close();
   }, []);
 
-  return { analysisId, analysisResult, isAnalyzing, progress, stage, startAnalysis };
+  const startUrlAnalysis = async (url: string) => {
+    setIsAnalyzing(true);
+    setProgress(5);
+    setStage("preprocessing");
+
+    try {
+      const { analysis_id } = await analyzeUrl(url);
+      setAnalysisId(analysis_id);
+      localStorage.setItem(PENDING_KEY, analysis_id);
+      connectWebSocket(analysis_id);
+    } catch {
+      setIsAnalyzing(false);
+      setStage(null);
+    }
+  };
+
+  return { analysisId, analysisResult, isAnalyzing, progress, stage, startAnalysis, startUrlAnalysis };
 }

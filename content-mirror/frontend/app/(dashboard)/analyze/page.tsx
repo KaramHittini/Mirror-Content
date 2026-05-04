@@ -16,7 +16,7 @@ function AnalyzeContent() {
   const router = useRouter();
   const loadId = searchParams.get("id");
 
-  const { analysisResult, isAnalyzing, startAnalysis, progress, stage } = useAnalysis();
+  const { analysisResult, isAnalyzing, startAnalysis, startUrlAnalysis, progress, stage } = useAnalysis();
   const [loadedResult, setLoadedResult] = useState<AnalysisResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
 
@@ -93,6 +93,7 @@ function AnalyzeContent() {
           </div>
           <VideoUploader
             onUpload={startAnalysis}
+            onAnalyzeUrl={startUrlAnalysis}
             isUploading={isAnalyzing}
             progress={progress}
             stage={stage}

@@ -6,7 +6,7 @@ from sqlalchemy import select, desc
 from app.db.database import get_session
 from app.models.user import User
 from app.models.analysis import Analysis
-from app.schemas.analysis import AnalysisUploadResponse, AnalysisResponse, AnalysisSummary
+from app.schemas.analysis import AnalysisUploadResponse, AnalysisResponse, AnalysisSummary, URLAnalysisRequest
 from app.core.dependencies import get_current_user
 from app.services.storage_service import StorageService
 from app.services.queue_service import enqueue_analysis
@@ -55,6 +55,46 @@ async def upload_video(
 
     try:
         enqueue_analysis(str(analysis.id), storage_key)
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=503, detail="Analysis queue is unavailable. Please try again shortly.")
+
+    current_user.analyses_used += 1
+    current_user.analyses_today += 1
+    await db.commit()
+    await db.refresh(analysis)
+
+    return AnalysisUploadResponse(analysis_id=analysis.id)
+
+
+@router.post("/url", response_model=AnalysisUploadResponse, status_code=202)
+async def analyze_url(
+    body: URLAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session),
+):
+    if current_user.analyses_reset_at != date.today():
+        current_user.analyses_today = 0
+        current_user.analyses_reset_at = date.today()
+
+    if current_user.analyses_today >= current_user.daily_limit:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily limit of {current_user.daily_limit} analyses reached.",
+        )
+
+    analysis = Analysis(
+        user_id=current_user.id,
+        filename=str(body.url),
+        storage_key=None,
+        status="pending",
+    )
+    db.add(analysis)
+    await db.flush()
+
+    try:
+        from app.workers.analysis_worker import download_and_run_analysis
+        download_and_run_analysis.delay(str(analysis.id), str(body.url))
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=503, detail="Analysis queue is unavailable. Please try again shortly.")
