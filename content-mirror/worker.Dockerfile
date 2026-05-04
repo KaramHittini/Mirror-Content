@@ -13,15 +13,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenblas-dev liblapack-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir --upgrade pip wheel && \
+    pip install --no-cache-dir "setuptools==69.5.1"
 
 # Backend requirements (Celery, SQLAlchemy, config, redis …)
 COPY backend/requirements.txt /tmp/backend_req.txt
 RUN pip install --no-cache-dir -r /tmp/backend_req.txt
-
-# openai-whisper needs pkg_resources at metadata-generation time
-RUN pip install --no-cache-dir setuptools && \
-    pip install --no-cache-dir "openai-whisper==20231117"
 
 # AI pipeline requirements (cv2, moviepy, whisper, face-recognition …)
 COPY ai/requirements.txt /tmp/ai_req.txt
