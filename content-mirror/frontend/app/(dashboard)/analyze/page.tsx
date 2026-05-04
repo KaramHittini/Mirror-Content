@@ -5,9 +5,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { VideoUploader } from "@/components/analysis/VideoUploader";
 import { AnalysisResults } from "@/components/analysis/AnalysisResults";
 import { useAnalysis } from "@/hooks/useAnalysis";
-import { getAnalysisResult } from "@/lib/api";
+import { getAnalysisResult, cancelAnalysis } from "@/lib/api";
 import type { AnalysisResult } from "@/lib/types";
-import { Loader2, RotateCcw } from "lucide-react";
+import { Loader2, RotateCcw, Square } from "lucide-react";
 
 const PENDING_KEY = "pending_analysis_id";
 
@@ -16,9 +16,10 @@ function AnalyzeContent() {
   const router = useRouter();
   const loadId = searchParams.get("id");
 
-  const { analysisResult, isAnalyzing, startAnalysis, startUrlAnalysis, progress, stage } = useAnalysis();
+  const { analysisResult, isAnalyzing, startAnalysis, startUrlAnalysis, progress, stage, analysisId } = useAnalysis();
   const [loadedResult, setLoadedResult] = useState<AnalysisResult | null>(null);
   const [isLoadingResult, setIsLoadingResult] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Load a specific analysis opened from history (?id=...)
   useEffect(() => {
@@ -63,6 +64,21 @@ function AnalyzeContent() {
   }, [loadedResult?.id, loadedResult?.status]);
 
   const result = loadedResult ?? analysisResult;
+
+  const handleCancel = async () => {
+    const id = loadedResult?.id ?? analysisId;
+    if (!id) return;
+    setIsCancelling(true);
+    try {
+      await cancelAnalysis(id);
+    } finally {
+      localStorage.removeItem(PENDING_KEY);
+      setLoadedResult(null);
+      setIsCancelling(false);
+      router.push("/analyze");
+    }
+  };
+
   const handleNewAnalysis = () => {
     localStorage.removeItem(PENDING_KEY);
     setLoadedResult(null);
@@ -112,6 +128,14 @@ function AnalyzeContent() {
               This usually takes 1–3 minutes. You can leave this page and come back — your analysis will still be here.
             </p>
           </div>
+          <button
+            onClick={handleCancel}
+            disabled={isCancelling}
+            className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 px-4 py-2 rounded-lg transition-all mx-auto disabled:opacity-40"
+          >
+            <Square className="w-3.5 h-3.5 fill-current" />
+            {isCancelling ? "Stopping…" : "Stop analysis"}
+          </button>
         </div>
       )}
 

@@ -60,6 +60,9 @@ export const uploadVideo = async (
 export const analyzeUrl = (url: string) =>
   api.post<{ analysis_id: string }>("/analyses/url", { url }).then((r) => r.data);
 
+export const cancelAnalysis = (id: string) =>
+  api.post(`/analyses/${id}/cancel`);
+
 export const getAnalysisResult = (id: string) =>
   api.get(`/analyses/${id}`).then((r) => r.data);
 

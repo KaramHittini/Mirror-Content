@@ -107,6 +107,30 @@ async def analyze_url(
     return AnalysisUploadResponse(analysis_id=analysis.id)
 
 
+@router.post("/{analysis_id}/cancel", status_code=204)
+async def cancel_analysis(
+    analysis_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session),
+):
+    result = await db.execute(
+        select(Analysis).where(
+            Analysis.id == analysis_id,
+            Analysis.user_id == current_user.id,
+        )
+    )
+    analysis = result.scalar_one_or_none()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    if analysis.status not in ("pending", "processing"):
+        raise HTTPException(status_code=400, detail="Analysis is not in progress")
+    analysis.status = "failed"
+    analysis.error_message = "Cancelled by user"
+    await db.commit()
+    from fastapi.responses import Response as FastAPIResponse
+    return FastAPIResponse(status_code=204)
+
+
 @router.get("", response_model=list[AnalysisSummary])
 async def list_analyses(
     limit: int = Query(default=20, le=100),
