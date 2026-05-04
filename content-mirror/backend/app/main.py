@@ -70,6 +70,7 @@ app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120)
 
 app.include_router(router)
+Path(settings.local_upload_dir).mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=settings.local_upload_dir), name="static")
 
 
