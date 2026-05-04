@@ -28,7 +28,7 @@ export function Sidebar() {
     <aside className="w-[220px] shrink-0 h-full flex flex-col border-r border-white/[0.06] bg-surface-950">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/[0.06]">
-        <Link href="/dashboard" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center shadow-glow-sm group-hover:shadow-glow transition-shadow">
             <Zap className="w-3.5 h-3.5 text-white" fill="white" />
           </div>
