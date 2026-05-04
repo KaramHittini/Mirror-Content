@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir --no-build-isolation -r /tmp/ai_req.txt
 
 # Non-root user
 RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 --gid 1001 --ingroup appgroup appuser
+    adduser --system --uid 1001 --ingroup appgroup appuser
 
 # Copy backend source — ai/ is mounted as a volume at /app/ai
 COPY --chown=appuser:appgroup backend/ .

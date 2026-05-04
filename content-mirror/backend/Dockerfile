@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/venv /app/venv
 
 RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 --gid 1001 --ingroup appgroup appuser
+    adduser --system --uid 1001 --ingroup appgroup appuser
 
 WORKDIR /app
 COPY --chown=appuser:appgroup . .
