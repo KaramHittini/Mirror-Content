@@ -1,0 +1,5 @@
+# AI pipeline dependencies
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+pytesseract==0.3.13
+yt-dlp==2024.8.6
