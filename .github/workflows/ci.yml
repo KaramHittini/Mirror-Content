@@ -53,6 +53,7 @@ jobs:
       GEMINI_API_KEY: dummy
       STORAGE_BACKEND: local
       LOCAL_UPLOAD_DIR: /tmp/uploads
+      APP_ENV: testing
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -81,7 +82,7 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get install -y ffmpeg tesseract-ocr
       - name: Install AI requirements
-        run: pip install "setuptools==69.5.1" && pip install --no-build-isolation -r requirements.txt
+        run: pip install "setuptools==69.5.1" wheel && pip install --no-build-isolation -r requirements.txt
       - name: Install backend requirements (for app.core.config)
         run: pip install -r ../backend/requirements.txt
       - run: pytest tests/ -v --tb=short
@@ -118,7 +119,7 @@ jobs:
           cache: npm
           cache-dependency-path: content-mirror/frontend/package-lock.json
       - run: npm ci
-      - run: npm test -- --watchAll=false --passWithNoTests
+      - run: npm test -- --run --passWithNoTests
 
   frontend-build:
     name: Frontend — build

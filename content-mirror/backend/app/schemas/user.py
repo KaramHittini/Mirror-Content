@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserResponse(BaseModel):

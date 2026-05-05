@@ -1,19 +1,22 @@
 import secrets
 
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, HTTPException, Response, Cookie
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.core.email import _password_reset_html, _verify_email_html, send_email
+from app.core.security import create_access_token, create_refresh_token, decode_token, hash_password, verify_password
 from app.db.database import get_session
 from app.models.user import User
 from app.schemas.auth import (
-    RegisterRequest, LoginRequest, TokenResponse,
-    ForgotPasswordRequest, ResetPasswordRequest,
+    ForgotPasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    TokenResponse,
 )
-from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
-from app.core.config import settings
-from app.core.email import send_email, _password_reset_html, _verify_email_html
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

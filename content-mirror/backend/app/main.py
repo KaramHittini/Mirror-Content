@@ -16,7 +16,7 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from app.api.v1.router import router
 from app.core.config import settings
 from app.core.security import decode_token
-from app.db.database import create_tables, AsyncSessionLocal
+from app.db.database import AsyncSessionLocal, create_tables
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 
@@ -96,6 +96,7 @@ async def unhandled_exception_handler(request, exc: Exception):
 @app.websocket("/ws/{analysis_id}")
 async def analysis_websocket(websocket: WebSocket, analysis_id: str):
     from sqlalchemy import select as sa_select
+
     from app.models.analysis import Analysis
 
     # Authenticate via token query param (httpOnly cookie can't be read by JS for WS)

@@ -1,7 +1,9 @@
 import uuid
-from datetime import datetime, date, timezone
-from sqlalchemy import String, DateTime, Date, Integer, Enum as SAEnum
+from datetime import UTC, date, datetime
+
+from sqlalchemy import Date, DateTime, Enum as SAEnum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.database import Base
 
 
@@ -19,7 +21,7 @@ class User(Base):
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True, default=None)
     email_verified: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
     analyses: Mapped[list["Analysis"]] = relationship(back_populates="user", lazy="select")  # noqa: F821

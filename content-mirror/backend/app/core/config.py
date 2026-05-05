@@ -1,8 +1,9 @@
 import os
 import re
+from functools import lru_cache
+
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from functools import lru_cache
 
 
 class Settings(BaseSettings):

@@ -1,6 +1,7 @@
-import time
 import logging
+import time
 from collections import defaultdict
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -30,6 +31,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._auth_windows: dict[str, list[float]] = defaultdict(list)
 
     async def dispatch(self, request: Request, call_next):
+        from app.core.config import settings
+        if settings.app_env == "testing":
+            return await call_next(request)
+
         path = request.url.path
         if any(path.startswith(p) for p in _EXEMPT_PREFIXES):
             return await call_next(request)

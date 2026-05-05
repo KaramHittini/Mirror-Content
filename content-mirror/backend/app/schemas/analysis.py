@@ -1,6 +1,7 @@
-from pydantic import BaseModel, field_validator, AnyHttpUrl
 from datetime import datetime
 from urllib.parse import urlparse
+
+from pydantic import AnyHttpUrl, BaseModel, field_validator
 
 
 class WeakSection(BaseModel):

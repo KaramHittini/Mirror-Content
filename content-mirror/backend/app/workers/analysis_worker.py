@@ -5,7 +5,7 @@ Broadcasts progress updates via Redis pub/sub (consumed by the WebSocket endpoin
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from celery import Task
@@ -13,8 +13,8 @@ from celery.exceptions import SoftTimeLimitExceeded
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.workers.celery_app import celery_app
 from app.core.config import settings
+from app.workers.celery_app import celery_app
 
 def _sync_db_url(url: str) -> str:
     """Convert any Postgres URL variant to a psycopg2 sync URL."""
@@ -74,7 +74,7 @@ def _run_pipeline(r, db, analysis, file_path: str):
     analysis.face_detected = result.get("face_detected")
     analysis.subtitles_detected = result.get("subtitles_detected")
     analysis.status = "completed"
-    analysis.completed_at = datetime.now(timezone.utc)
+    analysis.completed_at = datetime.now(UTC)
     db.commit()
 
     _publish_progress(r, analysis.id, "complete", 100, "Analysis complete!")
@@ -103,7 +103,7 @@ def run_analysis(self: Task, analysis_id: str, storage_key: str):
         file_path = str(Path(settings.local_upload_dir) / storage_key)
         _run_pipeline(r, db, analysis, file_path)
 
-    except SoftTimeLimitExceeded as exc:
+    except SoftTimeLimitExceeded:
         db.rollback()
         from app.models.analysis import Analysis as A
         analysis = db.get(A, analysis_id)
@@ -173,7 +173,7 @@ def download_and_run_analysis(self: Task, analysis_id: str, source_url: str):
         _get_ai_path()
         _run_pipeline(r, db, analysis, file_path)
 
-    except SoftTimeLimitExceeded as exc:
+    except SoftTimeLimitExceeded:
         db.rollback()
         from app.models.analysis import Analysis as A
         analysis = db.get(A, analysis_id)
