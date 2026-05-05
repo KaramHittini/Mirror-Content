@@ -1,38 +1,45 @@
-FROM python:3.12-slim
+# Build context: content-mirror/ (root .dockerignore applies)
+# ── Builder ──────────────────────────────────────────────────────
+FROM python:3.12-slim AS builder
 
-WORKDIR /app
-
-# System deps: build tools + all media/vision libraries the AI pipeline needs
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ cmake build-essential \
-    libpq-dev \
-    ffmpeg \
-    tesseract-ocr \
-    libsndfile1 \
-    libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgomp1 \
-    libopenblas-dev liblapack-dev \
+    gcc libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade pip wheel && \
-    pip install --no-cache-dir "setuptools==69.5.1"
+WORKDIR /build
+RUN python -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
 
-# Backend requirements (Celery, SQLAlchemy, config, redis …)
-COPY backend/requirements.txt /tmp/backend_req.txt
-RUN pip install --no-cache-dir -r /tmp/backend_req.txt
+COPY backend/requirements.txt backend-requirements.txt
+COPY ai/requirements.txt ai-requirements.txt
+RUN pip install --no-cache-dir -r backend-requirements.txt -r ai-requirements.txt
 
-# AI pipeline requirements (cv2, moviepy, whisper, face-recognition …)
-COPY ai/requirements.txt /tmp/ai_req.txt
-RUN pip install --no-cache-dir --no-build-isolation -r /tmp/ai_req.txt
+# ── Runtime ──────────────────────────────────────────────────────
+FROM python:3.12-slim
 
-# Bake the Whisper tiny model into the image so it never downloads at runtime
-RUN python -c "import whisper; whisper.load_model('tiny')"
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 ffmpeg tesseract-ocr \
+    libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 libffi8 shared-mime-info \
+    && rm -rf /var/lib/apt/lists/*
 
-# Non-root user
+COPY --from=builder /app/venv /app/venv
+
 RUN addgroup --system --gid 1001 appgroup && \
     adduser --system --uid 1001 --ingroup appgroup appuser
 
-# Copy backend source — ai/ is mounted as a volume at /app/ai
+WORKDIR /app
+
+# Backend code (Celery tasks, models, config)
 COPY --chown=appuser:appgroup backend/ .
-RUN mkdir -p /app/ai && chown appuser:appgroup /app/ai
+
+# AI pipeline code
+COPY --chown=appuser:appgroup ai/ ai/
+
+RUN mkdir -p uploads && chown appuser:appgroup uploads
 
 USER appuser
+ENV PATH="/app/venv/bin:$PATH"
+
+CMD ["celery", "-A", "app.workers.celery_app", "worker", \
+     "--queues", "analysis", "--loglevel=info", "--concurrency=1"]

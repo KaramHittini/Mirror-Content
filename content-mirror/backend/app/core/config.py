@@ -94,6 +94,10 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
+    # Internal service URL (used by Celery worker to fetch uploaded files
+    # from the backend over Railway private networking)
+    backend_internal_url: str = "http://mirror-content.railway.internal:8000"
+
     @model_validator(mode="after")
     def _validate_production_secrets(self) -> "Settings":
         if self.app_env == "production":

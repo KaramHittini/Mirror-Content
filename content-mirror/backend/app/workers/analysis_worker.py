@@ -37,6 +37,21 @@ def _publish_progress(redis_client, analysis_id: str, stage: str, progress: int,
     redis_client.publish(f"analysis:{analysis_id}", payload)
 
 
+def _ensure_file(storage_key: str, local_path: str) -> None:
+    """
+    Ensure the uploaded file exists locally.
+    On Railway the web server and worker are separate containers, so if the
+    file isn't on disk we fetch it from the backend via private networking.
+    """
+    if Path(local_path).exists():
+        return
+    import urllib.request
+    backend_url = settings.backend_internal_url.rstrip("/")
+    url = f"{backend_url}/api/v1/analyses/internal/file/{storage_key}"
+    Path(local_path).parent.mkdir(parents=True, exist_ok=True)
+    urllib.request.urlretrieve(url, local_path)
+
+
 def _get_ai_path() -> Path:
     ai_path = next(
         (p / "ai" for p in Path(__file__).resolve().parents if (p / "ai" / "main.py").exists()),
@@ -125,6 +140,7 @@ def run_analysis(self: Task, analysis_id: str, storage_key: str):
         _get_ai_path()
 
         file_path = str(Path(settings.local_upload_dir) / storage_key)
+        _ensure_file(storage_key, file_path)
         _run_pipeline(r, db, analysis, file_path)
 
     except SoftTimeLimitExceeded:

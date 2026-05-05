@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
-from fastapi.responses import Response as FastAPIResponse
+from fastapi.responses import FileResponse, Response as FastAPIResponse
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -191,6 +191,16 @@ async def delete_analysis(
     await db.delete(analysis)
     await db.commit()
     return FastAPIResponse(status_code=204)
+
+
+@router.get("/internal/file/{storage_key:path}", include_in_schema=False)
+async def serve_file_internal(storage_key: str):
+    """Serve an uploaded file over Railway private network so the worker can fetch it."""
+    import os
+    file_path = os.path.join(os.environ.get("LOCAL_UPLOAD_DIR", "./uploads"), storage_key)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path)
 
 
 @router.get("/{analysis_id}", response_model=AnalysisResponse)
