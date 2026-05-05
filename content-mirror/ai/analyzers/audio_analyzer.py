@@ -166,7 +166,7 @@ def _get_whisper_model():
     global _whisper_model
     if _whisper_model is None:
         import whisper
-        _whisper_model = whisper.load_model("base")
+        _whisper_model = whisper.load_model("tiny")
     return _whisper_model
 
 

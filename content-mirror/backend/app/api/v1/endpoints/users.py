@@ -1,11 +1,12 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_session
 from app.models.user import User
+from app.models.analysis import Analysis
 from app.schemas.user import UserResponse, UserUpdateRequest, UsageResponse, ChangePasswordRequest, ChangeEmailRequest
 from app.core.dependencies import get_current_user
 from app.core.security import hash_password, verify_password
@@ -63,6 +64,7 @@ async def delete_account(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ):
+    await db.execute(delete(Analysis).where(Analysis.user_id == current_user.id))
     await db.delete(current_user)
     await db.commit()
     return Response(status_code=204)

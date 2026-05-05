@@ -95,10 +95,19 @@ export function useAnalysis() {
   const pollResult = (id: string) => {
     let fakeProgress = 35;
     let delay = POLL_INITIAL_MS;
+    const startedAt = Date.now();
+    const MAX_POLL_MS = 10 * 60 * 1000; // 10 minutes
     setProgress(fakeProgress);
     setStage("preprocessing");
 
     const poll = async () => {
+      if (Date.now() - startedAt > MAX_POLL_MS) {
+        sessionStorage.removeItem(PENDING_KEY);
+        toast.error("Analysis is taking too long. Please try again with a shorter video.");
+        setIsAnalyzing(false);
+        return;
+      }
+
       try {
         const result = await getAnalysisResult(id);
 
@@ -109,7 +118,7 @@ export function useAnalysis() {
           setIsAnalyzing(false);
         } else if (result.status === "failed") {
           sessionStorage.removeItem(PENDING_KEY);
-          toast.error("Analysis failed.");
+          toast.error("Analysis failed. Please try again.");
           setIsAnalyzing(false);
         } else {
           fakeProgress = Math.min(fakeProgress + 4, 90);

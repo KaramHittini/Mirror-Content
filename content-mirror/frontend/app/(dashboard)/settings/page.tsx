@@ -116,6 +116,9 @@ export default function SettingsPage() {
       tokenStore.clear();
       window.location.href = "/login";
     },
+    onError: () => {
+      toast.error("Failed to delete account. Please try again.");
+    },
   });
 
   const handlePasswordSave = (e: React.FormEvent) => {

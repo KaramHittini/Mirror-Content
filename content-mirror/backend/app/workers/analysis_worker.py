@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from celery import Task
+from celery.exceptions import SoftTimeLimitExceeded
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -102,6 +103,15 @@ def run_analysis(self: Task, analysis_id: str, storage_key: str):
         file_path = str(Path(settings.local_upload_dir) / storage_key)
         _run_pipeline(r, db, analysis, file_path)
 
+    except SoftTimeLimitExceeded as exc:
+        db.rollback()
+        from app.models.analysis import Analysis as A
+        analysis = db.get(A, analysis_id)
+        if analysis:
+            analysis.status = "failed"
+            analysis.error_message = "Analysis timed out. Try a shorter video."
+            db.commit()
+        _publish_progress(r, analysis_id, "failed", 0, "Analysis timed out.")
     except Exception as exc:
         db.rollback()
         from app.models.analysis import Analysis as A
@@ -163,6 +173,15 @@ def download_and_run_analysis(self: Task, analysis_id: str, source_url: str):
         _get_ai_path()
         _run_pipeline(r, db, analysis, file_path)
 
+    except SoftTimeLimitExceeded as exc:
+        db.rollback()
+        from app.models.analysis import Analysis as A
+        analysis = db.get(A, analysis_id)
+        if analysis:
+            analysis.status = "failed"
+            analysis.error_message = "Analysis timed out. Try a shorter video."
+            db.commit()
+        _publish_progress(r, analysis_id, "failed", 0, "Analysis timed out.")
     except Exception as exc:
         db.rollback()
         from app.models.analysis import Analysis as A

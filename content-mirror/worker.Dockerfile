@@ -24,6 +24,9 @@ RUN pip install --no-cache-dir -r /tmp/backend_req.txt
 COPY ai/requirements.txt /tmp/ai_req.txt
 RUN pip install --no-cache-dir --no-build-isolation -r /tmp/ai_req.txt
 
+# Bake the Whisper tiny model into the image so it never downloads at runtime
+RUN python -c "import whisper; whisper.load_model('tiny')"
+
 # Non-root user
 RUN addgroup --system --gid 1001 appgroup && \
     adduser --system --uid 1001 --ingroup appgroup appuser
