@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserResponse(BaseModel):
@@ -8,7 +9,10 @@ class UserResponse(BaseModel):
     email: EmailStr
     plan: str
     analyses_used: int
-    analyses_limit: int
+    analyses_today: int
+    daily_limit: int
+    avatar_url: str | None = None
+    email_verified: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -28,8 +32,26 @@ class UserUpdateRequest(BaseModel):
         return v
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=8)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strong_enough(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
+
+class ChangeEmailRequest(BaseModel):
+    new_email: EmailStr
+    current_password: str
+
+
 class UsageResponse(BaseModel):
     analyses_used: int
-    analyses_limit: int
+    analyses_today: int
+    daily_limit: int
     plan: str
     usage_pct: float

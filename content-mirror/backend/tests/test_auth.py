@@ -92,7 +92,8 @@ async def test_usage_endpoint(client: AsyncClient, auth_headers: dict):
     assert resp.status_code == 200
     body = resp.json()
     assert body["analyses_used"] == 0
-    assert body["analyses_limit"] == 5
+    assert body["analyses_today"] == 0
+    assert body["daily_limit"] == 5
     assert body["plan"] == "free"
     assert body["usage_pct"] == 0.0
 

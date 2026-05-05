@@ -37,7 +37,7 @@ class AudioAnalysisResult:
 FILLER_WORDS = {"um", "uh", "like", "you know", "basically", "literally", "actually", "so", "right"}
 
 
-def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
+def analyze_audio(video_path: str, language: str | None = None) -> AudioAnalysisResult:
     """
     Full audio analysis pipeline.
 
@@ -50,6 +50,16 @@ def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
     """
     audio_path = _extract_audio(video_path)
     try:
+        if not os.path.exists(audio_path) or os.path.getsize(audio_path) == 0:
+            return AudioAnalysisResult(
+                audio_quality="unknown",
+                silence_ratio=0.0,
+                snr_db=0.0,
+                transcript="",
+                wpm=0,
+                filler_word_ratio=0.0,
+                hook_message_present=False,
+            )
         y, sr = librosa.load(audio_path, sr=16000, mono=True)
 
         rms = _compute_rms(y)
@@ -77,10 +87,21 @@ def analyze_audio(video_path: str, language: str = "ar") -> AudioAnalysisResult:
 
 
 def _extract_audio(video_path: str) -> str:
-    """Extract audio track to a temporary WAV file."""
+    """
+    Extract audio track to a temporary WAV file.
+
+    Returns the temp file path even if no audio track exists — the caller
+    checks os.path.getsize() > 0 before loading, so an empty file is safe.
+
+    Raises:
+        RuntimeError: If the file cannot be opened at all by moviepy.
+    """
     tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
     tmp.close()
     clip = VideoFileClip(video_path)
+    if clip.audio is None:
+        clip.close()
+        return tmp.name  # empty file — analyze_audio caller must guard
     clip.audio.write_audiofile(tmp.name, fps=16000, nbytes=2, codec="pcm_s16le", verbose=False, logger=None)
     clip.close()
     return tmp.name
@@ -138,20 +159,28 @@ def _classify_audio_quality(rms: float, silence_ratio: float, snr_db: float) -> 
     return "poor"
 
 
-def _transcribe(audio_path: str, language: str = "ar") -> dict:
+_whisper_model = None
+
+
+def _get_whisper_model():
+    global _whisper_model
+    if _whisper_model is None:
+        import whisper
+        _whisper_model = whisper.load_model("tiny")
+    return _whisper_model
+
+
+def _transcribe(audio_path: str, language: str | None = None) -> dict:
     """
-    Transcribe audio using OpenAI Whisper (local model).
-    Falls back to empty transcript on failure.
+    Transcribe audio using OpenAI Whisper (local model, cached per worker process).
+    language=None triggers Whisper auto-detection. Falls back to empty transcript on failure.
     """
     try:
-        import whisper
-        model = whisper.load_model("base")
-        result = model.transcribe(
-            audio_path,
-            word_timestamps=True,
-            language=language,
-            initial_prompt="تجاهل الموسيقى وركز على الكلام فقط" if language == "ar" else "Ignore background music and focus on speech only"
-        )
+        model = _get_whisper_model()
+        kwargs: dict = {"word_timestamps": True, "initial_prompt": "Ignore background music and focus on speech only"}
+        if language:
+            kwargs["language"] = language
+        result = model.transcribe(audio_path, **kwargs)
         duration = result.get("segments", [{}])[-1].get("end", 60) if result.get("segments") else 60
         return {"text": result.get("text", "").strip(), "segments": result.get("segments", []), "duration": duration}
     except Exception:

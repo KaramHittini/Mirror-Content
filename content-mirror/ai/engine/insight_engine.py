@@ -18,7 +18,19 @@ from typing import Any
 
 import google.generativeai as genai
 
-from app.core.config import settings  # type: ignore[import]
+def _get_settings():
+    """Lazy-load settings to avoid import errors when running standalone."""
+    try:
+        from app.core.config import settings  # type: ignore[import]
+        return settings
+    except ImportError:
+        import os
+
+        class _FallbackSettings:
+            gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+            ai_model = os.getenv("AI_MODEL", "gemini-1.5-flash")
+
+        return _FallbackSettings()
 
 
 @dataclass
@@ -77,7 +89,6 @@ def _apply_rules(d: dict) -> list[dict]:
     subtitles = d.get("subtitles_detected", False)
     sharpness = d.get("sharpness_score", 100.0)
     brightness = d.get("brightness_score", 128.0)
-    weak_sections = d.get("weak_sections", [])
 
     if hook_score < 4.0:
         insights.append(Insight(
@@ -175,12 +186,15 @@ def _apply_rules(d: dict) -> list[dict]:
 
 def _generate_llm_insights(analysis_data: dict, rule_insights: list[dict]) -> list[dict]:
     """
-    Use Claude to generate 1–2 additional insights that rules may have missed,
+    Use Gemini to generate 1–2 additional insights that rules may have missed,
     or to add nuance to the overall performance picture.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     try:
-        genai.configure(api_key=settings.gemini_api_key)
-        model = genai.GenerativeModel(settings.ai_model)
+        genai.configure(api_key=_get_settings().gemini_api_key)
+        model = genai.GenerativeModel(_get_settings().ai_model)
 
         rule_summary = "\n".join(
             f"- {i['problem']}: {i['cause']}" for i in rule_insights[:4]
@@ -219,5 +233,6 @@ Return only valid JSON, no explanation."""
                 raw = raw[4:]
         parsed = json.loads(raw)
         return [{"id": str(uuid.uuid4()), **item} for item in parsed if isinstance(item, dict)]
-    except Exception:
+    except Exception as exc:
+        logger.warning("Gemini LLM insights failed: %s", exc)
         return []

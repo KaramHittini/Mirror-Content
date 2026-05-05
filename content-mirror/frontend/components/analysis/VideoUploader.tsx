@@ -2,27 +2,29 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, Loader2 } from "lucide-react";
+import { UploadCloud, Loader2, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AnalysisProgress } from "@/lib/types";
+import toast from "react-hot-toast";
 
 interface VideoUploaderProps {
   onUpload: (file: File) => void;
+  onAnalyzeUrl: (url: string) => void;
   isUploading: boolean;
   progress: number;
   stage?: AnalysisProgress["stage"] | null;
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  uploading: "Uploading video...",
-  preprocessing: "Preprocessing frames...",
-  analyzing_video: "Analyzing video structure...",
-  analyzing_audio: "Analyzing audio quality...",
-  analyzing_visual: "Analyzing visual quality...",
-  generating_insights: "Generating insights...",
+  uploading: "Uploading…",
+  preprocessing: "Preprocessing frames…",
+  analyzing_video: "Analyzing video structure…",
+  analyzing_audio: "Analyzing audio…",
+  analyzing_visual: "Analyzing visuals…",
+  generating_insights: "Generating insights…",
 };
 
-export function VideoUploader({ onUpload, isUploading, progress, stage }: VideoUploaderProps) {
+export function VideoUploader({ onUpload, onAnalyzeUrl, isUploading, progress, stage }: VideoUploaderProps) {
   const [urlInput, setUrlInput] = useState("");
 
   const onDrop = useCallback(
@@ -35,82 +37,96 @@ export function VideoUploader({ onUpload, isUploading, progress, stage }: VideoU
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "video/*": [".mp4", ".mov", ".avi", ".mkv"] },
-    maxSize: 500 * 1024 * 1024, // 500 MB
+    maxSize: 500 * 1024 * 1024,
     disabled: isUploading,
     multiple: false,
   });
 
   if (isUploading) {
     return (
-      <div className="bg-surface-900 border border-white/10 rounded-2xl p-10 text-center space-y-4">
-        <Loader2 className="w-10 h-10 text-brand-500 animate-spin mx-auto" />
-        <p className="text-white font-medium">
-          {STAGE_LABELS[stage ?? ""] ?? "Analyzing your content..."}
-        </p>
-        <div className="w-full bg-surface-800 rounded-full h-2">
-          <div
-            className="bg-brand-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+      <div className="card p-10 text-center space-y-5">
+        <div className="relative w-14 h-14 mx-auto">
+          <div className="w-14 h-14 rounded-full border-2 border-brand-500/20 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
+          </div>
         </div>
-        <p className="text-gray-500 text-sm">{progress}% complete</p>
+        <div>
+          <p className="text-sm font-semibold text-white mb-1">
+            {STAGE_LABELS[stage ?? ""] ?? "Analyzing your content…"}
+          </p>
+          <p className="text-xs text-zinc-600">{progress}% complete</p>
+        </div>
+        <div className="w-full max-w-xs mx-auto">
+          <div className="h-1 bg-surface-800 rounded-full overflow-hidden">
+            <div
+              className="h-1 bg-brand-500 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Drop zone */}
       <div
         {...getRootProps()}
         className={cn(
-          "bg-surface-900 border-2 border-dashed rounded-2xl p-14 text-center cursor-pointer transition-colors",
+          "card rounded-2xl p-16 text-center cursor-pointer transition-all duration-200 relative overflow-hidden",
           isDragActive
-            ? "border-brand-500 bg-brand-500/5"
-            : "border-white/10 hover:border-brand-500/50"
+            ? "border-brand-500/60 bg-brand-500/[0.04]"
+            : "hover:border-white/[0.12] hover:bg-surface-900"
         )}
       >
         <input {...getInputProps()} />
-        <UploadCloud className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-        <p className="text-white font-medium mb-1">
-          {isDragActive ? "Drop your video here" : "Drag & drop your video"}
+        {isDragActive && (
+          <div className="absolute inset-0 pointer-events-none bg-brand-500/[0.03] border-2 border-brand-500/40 rounded-2xl" />
+        )}
+        <div className="w-12 h-12 mx-auto mb-5 rounded-2xl bg-surface-800 border border-white/[0.06] flex items-center justify-center">
+          {isDragActive
+            ? <Film className="w-5 h-5 text-brand-400" />
+            : <UploadCloud className="w-5 h-5 text-zinc-500" />
+          }
+        </div>
+        <p className="text-sm font-semibold text-white mb-1.5">
+          {isDragActive ? "Drop it here" : "Drop your video here"}
         </p>
-        <p className="text-gray-500 text-sm">
-          MP4, MOV, AVI, MKV — up to 500 MB
-        </p>
-        <button className="mt-5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+        <p className="text-xs text-zinc-600 mb-5">MP4, MOV, AVI or MKV · up to 500 MB</p>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 border border-white/[0.1] hover:border-white/20 text-zinc-300 hover:text-white text-xs font-medium px-4 py-2 rounded-lg transition-all"
+        >
           Browse files
         </button>
       </div>
 
-      {/* URL input (future — Phase 2) */}
+      {/* URL row */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-white/10" />
-        <span className="text-gray-600 text-xs uppercase tracking-wider">
-          or paste a URL
-        </span>
-        <div className="flex-1 h-px bg-white/10" />
+        <div className="flex-1 h-px bg-white/[0.05]" />
+        <span className="text-[11px] text-zinc-700 uppercase tracking-wider font-medium">or</span>
+        <div className="flex-1 h-px bg-white/[0.05]" />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <input
           type="url"
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
-          placeholder="https://www.tiktok.com/@user/video/..."
-          className="flex-1 bg-surface-900 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+          onKeyDown={(e) => { if (e.key === "Enter" && urlInput.trim()) { onAnalyzeUrl(urlInput.trim()); setUrlInput(""); } }}
+          placeholder="Paste a TikTok, Instagram or YouTube URL…"
+          className="input flex-1 text-xs"
+          disabled={isUploading}
         />
         <button
-          disabled
-          title="URL analysis coming in Phase 2"
-          className="bg-surface-800 text-gray-500 text-sm font-medium px-4 py-2.5 rounded-lg cursor-not-allowed border border-white/10"
+          onClick={() => { if (urlInput.trim()) { onAnalyzeUrl(urlInput.trim()); setUrlInput(""); } }}
+          disabled={isUploading || !urlInput.trim()}
+          className="btn-ghost text-xs px-4 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Analyze URL
         </button>
       </div>
-      <p className="text-gray-600 text-xs text-center">
-        TikTok, Instagram, and YouTube URL support coming soon
-      </p>
     </div>
   );
 }

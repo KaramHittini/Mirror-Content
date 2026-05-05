@@ -1,7 +1,9 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, Float, Integer, JSON, ForeignKey, Enum as SAEnum
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, Enum as SAEnum, Float, ForeignKey, Integer, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.database import Base
 
 
@@ -16,8 +18,10 @@ class Analysis(Base):
     status: Mapped[str] = mapped_column(
         SAEnum("pending", "processing", "completed", "failed", name="analysis_status_enum"),
         default="pending",
+        index=True,
     )
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
+    celery_task_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     # Core scores (populated after processing)
     hook_score: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -45,7 +49,7 @@ class Analysis(Base):
     subtitles_detected: Mapped[bool | None] = mapped_column(nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC), index=True
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

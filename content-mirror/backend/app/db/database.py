@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -30,3 +31,8 @@ async def get_session() -> AsyncSession:
 async def create_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(512)"))
+        await conn.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS celery_task_id VARCHAR(256)"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE"))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analyses_status ON analyses (status)"))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_analyses_created_at ON analyses (created_at)"))

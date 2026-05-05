@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from datetime import datetime
+from urllib.parse import urlparse
+
+from pydantic import AnyHttpUrl, BaseModel, field_validator
 
 
 class WeakSection(BaseModel):
@@ -35,6 +37,27 @@ class SimilarContent(BaseModel):
     hook_score: float
 
 
+_ALLOWED_HOSTNAMES = {
+    "youtube.com", "www.youtube.com", "youtu.be",
+    "tiktok.com", "www.tiktok.com", "vm.tiktok.com",
+    "instagram.com", "www.instagram.com",
+}
+
+
+class URLAnalysisRequest(BaseModel):
+    url: AnyHttpUrl
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v):
+        hostname = urlparse(str(v)).hostname or ""
+        if hostname not in _ALLOWED_HOSTNAMES:
+            raise ValueError(
+                "Only YouTube, TikTok, and Instagram URLs are supported."
+            )
+        return v
+
+
 class AnalysisUploadResponse(BaseModel):
     analysis_id: str
     message: str = "Analysis queued successfully"
@@ -43,8 +66,9 @@ class AnalysisUploadResponse(BaseModel):
 class AnalysisSummary(BaseModel):
     id: str
     filename: str
-    hook_score: float
+    hook_score: float | None = None
     status: str
+    error_message: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -72,5 +96,10 @@ class AnalysisResponse(BaseModel):
     face_detected: bool | None = None
     subtitles_detected: bool | None = None
     created_at: datetime
+
+    @field_validator("weak_sections", "insights", "recommendations", "similar_content", mode="before")
+    @classmethod
+    def coerce_none_to_list(cls, v):
+        return v if v is not None else []
 
     model_config = {"from_attributes": True}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { tokenStore } from "@/lib/tokenStore";
 import toast from "react-hot-toast";
 
 export function useAuth() {
@@ -13,7 +14,7 @@ export function useAuth() {
     setIsLoading(true);
     try {
       const { data } = await api.post("/auth/login", { email, password });
-      localStorage.setItem("access_token", data.access_token);
+      tokenStore.set(data.access_token);
       router.push("/dashboard");
     } catch {
       // error toast handled by axios interceptor
@@ -26,7 +27,7 @@ export function useAuth() {
     setIsLoading(true);
     try {
       const { data } = await api.post("/auth/register", { name, email, password });
-      localStorage.setItem("access_token", data.access_token);
+      tokenStore.set(data.access_token);
       toast.success("Account created! Welcome to Content Mirror.");
       router.push("/dashboard");
     } catch {
@@ -40,7 +41,7 @@ export function useAuth() {
     try {
       await api.post("/auth/logout");
     } finally {
-      localStorage.removeItem("access_token");
+      tokenStore.clear();
       router.push("/login");
     }
   };

@@ -4,7 +4,10 @@ export interface User {
   email: string;
   plan: "free" | "pro";
   analyses_used: number;
-  analyses_limit: number;
+  analyses_today: number;
+  daily_limit: number;
+  avatar_url: string | null;
+  email_verified: boolean;
   created_at: string;
 }
 
@@ -18,7 +21,7 @@ export interface AnalysisResult {
   id: string;
   filename: string;
   status: "pending" | "processing" | "completed" | "failed";
-  hook_score: number;
+  hook_score: number | null;
   pacing: "slow" | "medium" | "fast";
   audio_quality: "poor" | "average" | "good" | "excellent";
   image_quality: "poor" | "average" | "good" | "excellent";
@@ -42,8 +45,9 @@ export interface AnalysisResult {
 export interface AnalysisSummary {
   id: string;
   filename: string;
-  hook_score: number;
+  hook_score: number | null;
   status: AnalysisResult["status"];
+  error_message: string | null;
   created_at: string;
 }
 

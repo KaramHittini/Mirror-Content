@@ -1,5 +1,6 @@
-import time
 import logging
+import time
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -18,5 +19,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             request.url.path,
             response.status_code,
             duration_ms,
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "duration_ms": round(duration_ms, 1),
+            },
         )
         return response

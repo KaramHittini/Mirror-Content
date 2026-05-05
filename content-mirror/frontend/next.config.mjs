@@ -1,5 +1,8 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   experimental: {
     serverActions: { allowedOrigins: ["localhost:3000"] },
   },
@@ -10,13 +13,17 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const baseUrl = apiUrl.replace(/\/api\/v\d+$/, "");
     return [
-      {
-        source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
-      },
+      { source: "/api/:path*", destination: `${apiUrl}/:path*` },
+      { source: "/static/:path*", destination: `${baseUrl}/static/:path*` },
     ];
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  disableLogger: true,
+  widenClientFileUpload: true,
+});

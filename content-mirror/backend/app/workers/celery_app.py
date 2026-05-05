@@ -1,4 +1,5 @@
 from celery import Celery
+
 from app.core.config import settings
 
 celery_app = Celery(
@@ -17,4 +18,6 @@ celery_app.conf.update(
     task_routes={"app.workers.analysis_worker.*": {"queue": "analysis"}},
     task_acks_late=True,
     worker_prefetch_multiplier=1,
+    task_soft_time_limit=8 * 60,   # 8 min: raises SoftTimeLimitExceeded (catchable)
+    task_time_limit=10 * 60,       # 10 min: hard SIGKILL fallback
 )

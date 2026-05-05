@@ -58,9 +58,9 @@
 - [x] `backend/Dockerfile` + `frontend/Dockerfile`
 - [x] GitHub Actions CI — lint, test, build on PR
 - [x] Write backend unit tests (pytest) for auth + analysis endpoints
-- [ ] Write frontend component tests (Vitest + Testing Library)
+- [x] Write frontend component tests (Vitest + Testing Library)
 - [x] PDF report export (using `weasyprint`)
-- [ ] Set up Sentry error tracking (frontend + backend)
+- [x] Set up Sentry error tracking (frontend + backend)
 
 ---
 
@@ -68,9 +68,9 @@
 
 ### Phase 1: Pipeline Core
 - [x] `ai/main.py` — entry point: load video, run all analyzers, merge + return JSON
-- [ ] `ai/pipeline/preprocessor.py` — extract frames (0.5s interval), extract audio, normalize resolution
-- [ ] `ai/pipeline/segmenter.py` — split video into Hook / Body / CTA segments
-- [ ] `ai/pipeline/feature_extractor.py` — aggregate features per segment
+- [x] `ai/pipeline/preprocessor.py` — extract frames (0.5s interval), extract audio, normalize resolution
+- [x] `ai/pipeline/segmenter.py` — split video into Hook / Body / CTA segments
+- [x] `ai/pipeline/feature_extractor.py` — aggregate features per segment
 
 ### Phase 2: Insight & Recommendation Engines
 - [x] `ai/engine/insight_engine.py`
@@ -83,13 +83,13 @@
   - Include example wording/scripts where applicable
 - [x] `ai/utils/video_utils.py` — frame extraction, scene change detection helpers
 - [x] Backend integration: expose AI pipeline as a callable from `analysis_worker.py`
-- [ ] Write unit tests for insight + recommendation engines
-- [ ] Prompt engineering: design and iterate Claude system prompts for explanation quality
+- [x] Write unit tests for insight + recommendation engines
+- [x] Prompt engineering: Gemini prompt designed and integrated in insight_engine.py
 
 ### Phase 3: Pipeline API Contract
 - [x] Define strict JSON schema for pipeline input/output
 - [x] Validate output matches schema before returning to backend (`_sanitize`)
-- [ ] Handle edge cases: very short videos (<5s), audio-only, silent videos
+- [x] Handle edge cases: very short videos (<5s), audio-only, silent videos
 
 ---
 
@@ -106,20 +106,15 @@
   - Return: `{ "audio_quality": string, "silence_ratio": float, "snr_db": float }`
 
 ### Phase 2: Whisper Transcription
-- [ ] `ai/analyzers/transcription_analyzer.py` *(transcription logic exists inside `audio_analyzer.py` but needs to be its own module)*
-  - Integrate OpenAI Whisper (local model or API)
-  - Extract full transcript with word-level timestamps
-  - Detect: speech clarity, filler words (`um`, `uh`, `like`), speaking pace (WPM)
-  - Identify key message clarity (is the main idea stated in first 5 seconds?)
-  - Return: `{ "transcript": string, "wpm": int, "filler_word_ratio": float, "hook_message_present": bool }`
+- [x] `ai/analyzers/transcription_analyzer.py` — standalone Whisper transcription module with word-level timestamps, WPM, filler words, hook message detection
 
 ### Phase 3: Audio Insight Integration
 - [x] Feed audio insights into `insight_engine.py` rules
   - IF silence_ratio > 0.4 → "Too many pauses slow down pacing"
   - IF filler_word_ratio > 0.1 → "High filler words reduce perceived authority"
   - IF hook_message_present == false → "Main message missing from opening"
-- [ ] Write unit tests for audio analyzer with sample clips
-- [ ] Document expected input format (audio file path, sample rate)
+- [x] Write unit tests for audio analyzer with sample clips
+- [x] Document expected input format (audio file path, sample rate) — see AUDIO_README.md
 
 ---
 
@@ -143,7 +138,7 @@
   - Extract feature vector per video (topic + structure + pacing + quality scores)
   - Query: find top-3 similar successful videos given new content features (Pinecone + fallback)
   - Return: `{ "similar_content": [{ "title": str, "platform": str, "why_successful": str, "key_differences": str }] }`
-- [ ] Store & seed successful content embeddings in Pinecone vector DB *(fallback placeholder data is in place; real curation needed)*
+- [x] Store & seed successful content embeddings in Pinecone vector DB — see `ai/scripts/seed_pinecone.py` (8 curated records, run once per environment)
 
 ### Phase 3: Visual Insight Integration
 - [x] Feed visual insights into `insight_engine.py` rules
@@ -151,7 +146,7 @@
   - IF sharpness_score < 30 → "Low sharpness signals low production value"
   - IF subtitles_detected == false → "Missing captions reduce accessibility and watch time"
   - IF brightness_score < 20 OR > 235 → "Lighting is too dark/bright, hurts visual quality"
-- [ ] Write unit tests for image analyzer with sample frames
+- [x] Write unit tests for image analyzer with sample frames
 - [x] `ai/utils/audio_utils.py` — shared audio loading/normalization helpers
 
 ---

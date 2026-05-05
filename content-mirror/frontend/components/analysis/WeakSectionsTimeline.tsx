@@ -2,27 +2,38 @@
 
 import { formatSeconds } from "@/lib/utils";
 import type { WeakSection } from "@/lib/types";
+import { CheckCircle, AlertCircle } from "lucide-react";
 
 interface WeakSectionsTimelineProps {
   weakSections: WeakSection[];
   totalDuration: number;
 }
 
-export function WeakSectionsTimeline({
-  weakSections,
-  totalDuration,
-}: WeakSectionsTimelineProps) {
+export function WeakSectionsTimeline({ weakSections, totalDuration }: WeakSectionsTimelineProps) {
   return (
-    <div className="bg-surface-900 border border-white/10 rounded-xl p-5">
-      <h3 className="text-white font-semibold mb-4">Content Timeline</h3>
+    <div className="card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-white">Content Timeline</p>
+        <div className="flex items-center gap-3 text-[11px] text-zinc-600">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/40 inline-block" />
+            Strong
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-500/60 inline-block" />
+            Weak
+          </span>
+        </div>
+      </div>
 
-      {/* Visual timeline bar */}
-      <div className="relative h-4 bg-surface-800 rounded-full overflow-hidden mb-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/40 via-green-500/20 to-green-500/10 rounded-full" />
+      {/* Bar */}
+      <div className="relative h-3 bg-surface-800 rounded-full overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/25 to-emerald-500/10 rounded-full" />
         {weakSections.map((section, i) => {
-          const left = (section.start_seconds / totalDuration) * 100;
-          const width =
-            ((section.end_seconds - section.start_seconds) / totalDuration) * 100;
+          const left = totalDuration > 0 ? (section.start_seconds / totalDuration) * 100 : 0;
+          const width = totalDuration > 0
+            ? ((section.end_seconds - section.start_seconds) / totalDuration) * 100
+            : 0;
           return (
             <div
               key={i}
@@ -34,33 +45,23 @@ export function WeakSectionsTimeline({
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-500 mb-5">
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-2 rounded-sm bg-green-500/40 inline-block" />
-          Strong sections
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-2 rounded-sm bg-red-500/70 inline-block" />
-          Weak sections
-        </span>
-      </div>
-
-      {/* Weak section list */}
+      {/* List */}
       {weakSections.length === 0 ? (
-        <p className="text-green-400 text-sm">No major weak sections detected.</p>
+        <div className="flex items-center gap-2 text-sm text-emerald-400">
+          <CheckCircle className="w-4 h-4 shrink-0" />
+          No major weak sections detected
+        </div>
       ) : (
         <div className="space-y-2">
           {weakSections.map((section, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-3 bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3"
-            >
-              <span className="text-red-400 font-mono text-xs mt-0.5 shrink-0">
-                {formatSeconds(section.start_seconds)} —{" "}
-                {formatSeconds(section.end_seconds)}
+            <div key={i} className="flex items-start gap-3 rounded-lg px-3.5 py-3 bg-red-500/[0.04] border border-red-500/[0.15]">
+              <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-zinc-300 leading-relaxed">{section.reason}</p>
+              </div>
+              <span className="text-[11px] font-mono text-zinc-600 shrink-0 whitespace-nowrap">
+                {formatSeconds(section.start_seconds)}–{formatSeconds(section.end_seconds)}
               </span>
-              <p className="text-gray-300 text-sm">{section.reason}</p>
             </div>
           ))}
         </div>
