@@ -123,7 +123,7 @@ export default function Aurora({
     const mesh = new Mesh(gl, { geometry, program });
 
     let raf: number;
-    let start = performance.now();
+    const start = performance.now();
 
     const update = () => {
       raf = requestAnimationFrame(update);
