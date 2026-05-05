@@ -7,7 +7,7 @@ Returns a dict with all fields expected by analysis_worker._run_pipeline().
 import logging
 import random
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -228,11 +228,20 @@ def _build_recommendations(visual_data: Dict[str, Any], scores: Dict[str, Any]) 
     return recs
 
 
-def run_pipeline(video_path: str) -> Dict[str, Any]:
+def run_pipeline(video_path: str, progress_cb: Optional[Callable[[str, int, str], None]] = None) -> Dict[str, Any]:
     """
     Main analysis pipeline. Accepts a path to a local video file and returns
     a dict matching all fields consumed by analysis_worker._run_pipeline().
+    progress_cb(stage, percent, message) is called between steps if provided.
     """
+
+    def _progress(stage: str, pct: int, msg: str):
+        if progress_cb:
+            try:
+                progress_cb(stage, pct, msg)
+            except Exception:
+                pass
+
     logger.info(f"[AI Pipeline] Starting analysis for: {video_path}")
 
     if not Path(video_path).exists():
@@ -240,14 +249,17 @@ def run_pipeline(video_path: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"Video file not found: {video_path}")
 
     # 1. Visual analysis
+    _progress("analyzing_visual", 87, "Sampling video frames...")
     visual_data = _analyze_visuals(video_path)
     logger.info(f"[AI Pipeline] Visual data: {visual_data}")
 
     # 2. Derive scores and labels
+    _progress("analyzing_visual", 91, "Computing quality scores...")
     scores = _derive_scores(visual_data)
     logger.info(f"[AI Pipeline] Derived scores: {scores}")
 
     # 3. Benchmark comparison (graceful fallback if Pinecone not configured)
+    _progress("generating_insights", 94, "Comparing against benchmarks...")
     try:
         from engine.benchmark_engine import BenchmarkEngine
     except ImportError:
@@ -288,6 +300,7 @@ def run_pipeline(video_path: str) -> Dict[str, Any]:
             logger.warning(f"[AI Pipeline] Benchmark engine error: {e}")
 
     # 4. Insight generation
+    _progress("generating_insights", 97, "Generating insights...")
     try:
         from engine.insight_engine import InsightEngine
     except ImportError:

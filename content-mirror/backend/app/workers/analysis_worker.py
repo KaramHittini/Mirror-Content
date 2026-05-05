@@ -90,7 +90,10 @@ def _run_pipeline(r, db, analysis, file_path: str):
     _publish_progress(r, analysis.id, "analyzing_visual", 70, "Analyzing visual quality...")
     _publish_progress(r, analysis.id, "generating_insights", 85, "Generating insights...")
 
-    result = run_pipeline(file_path)
+    def _progress_cb(stage: str, pct: int, msg: str):
+        _publish_progress(r, analysis.id, stage, pct, msg)
+
+    result = run_pipeline(file_path, progress_cb=_progress_cb)
 
     analysis.hook_score = result.get("hook_score")
     analysis.hook_duration_seconds = result.get("hook_duration_seconds")

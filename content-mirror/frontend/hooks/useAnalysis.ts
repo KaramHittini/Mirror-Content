@@ -123,7 +123,7 @@ export function useAnalysis() {
           toast.error("Analysis failed. Please try again.");
           setIsAnalyzing(false);
         } else {
-          fakeProgress = Math.min(fakeProgress + 4, 90);
+          fakeProgress = Math.min(fakeProgress + 4, 95);
           setProgress(fakeProgress);
           delay = Math.min(delay * POLL_BACKOFF, POLL_MAX_MS);
           pollRef.current = setTimeout(poll, delay);
@@ -140,7 +140,11 @@ export function useAnalysis() {
     try {
       const result = await getAnalysisResult(id);
       sessionStorage.removeItem(PENDING_KEY);
+      setProgress(100);
+      setStage("complete");
       setAnalysisResult(result);
+    } catch {
+      toast.error("Failed to fetch results. Please refresh.");
     } finally {
       setIsAnalyzing(false);
     }
