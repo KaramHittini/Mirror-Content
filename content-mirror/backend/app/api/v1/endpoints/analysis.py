@@ -162,7 +162,9 @@ async def list_analyses(
     db: AsyncSession = Depends(get_session),
 ):
     q = select(Analysis).where(Analysis.user_id == current_user.id)
-    if status:
+    if status == "in_progress":
+        q = q.where(Analysis.status.in_(["pending", "processing"]))
+    elif status:
         q = q.where(Analysis.status == status)
     if search:
         q = q.where(Analysis.filename.ilike(f"%{search}%"))

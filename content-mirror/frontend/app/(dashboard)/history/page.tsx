@@ -16,7 +16,7 @@ const PAGE_SIZE = 20;
 const STATUS_FILTERS = [
   { label: "All", value: "" },
   { label: "Completed", value: "completed" },
-  { label: "Processing", value: "processing" },
+  { label: "In Progress", value: "in_progress" },
   { label: "Failed", value: "failed" },
 ];
 

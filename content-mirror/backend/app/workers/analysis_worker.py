@@ -47,6 +47,26 @@ def _get_ai_path() -> Path:
     return ai_path
 
 
+def _safe_fail(db, r, analysis_id: str, error_message: str, progress_message: str):
+    """Best-effort: mark analysis as failed in DB and publish failure event."""
+    if db:
+        try:
+            db.rollback()
+            from app.models.analysis import Analysis as A
+            analysis = db.get(A, analysis_id)
+            if analysis:
+                analysis.status = "failed"
+                analysis.error_message = error_message
+                db.commit()
+        except Exception:
+            pass
+    if r:
+        try:
+            _publish_progress(r, analysis_id, "failed", 0, progress_message)
+        except Exception:
+            pass
+
+
 def _run_pipeline(r, db, analysis, file_path: str):
     from main import run_pipeline  # ai/main.py
 
@@ -85,10 +105,13 @@ def _run_pipeline(r, db, analysis, file_path: str):
 def run_analysis(self: Task, analysis_id: str, storage_key: str):
     import redis as redis_lib
 
-    r = redis_lib.from_url(settings.redis_url)
-    db = SyncSession()
+    db = None
+    r = None
 
     try:
+        r = redis_lib.from_url(settings.redis_url)
+        db = SyncSession()
+
         from app.models.analysis import Analysis
 
         analysis = db.get(Analysis, analysis_id)
@@ -105,26 +128,13 @@ def run_analysis(self: Task, analysis_id: str, storage_key: str):
         _run_pipeline(r, db, analysis, file_path)
 
     except SoftTimeLimitExceeded:
-        db.rollback()
-        from app.models.analysis import Analysis as A
-        analysis = db.get(A, analysis_id)
-        if analysis:
-            analysis.status = "failed"
-            analysis.error_message = "Analysis timed out. Try a shorter video."
-            db.commit()
-        _publish_progress(r, analysis_id, "failed", 0, "Analysis timed out.")
+        _safe_fail(db, r, analysis_id, "Analysis timed out. Try a shorter video.", "Analysis timed out.")
     except Exception as exc:
-        db.rollback()
-        from app.models.analysis import Analysis as A
-        analysis = db.get(A, analysis_id)
-        if analysis:
-            analysis.status = "failed"
-            analysis.error_message = str(exc)
-            db.commit()
-        _publish_progress(r, analysis_id, "failed", 0, f"Analysis failed: {exc}")
+        _safe_fail(db, r, analysis_id, str(exc)[:1000], f"Analysis failed: {exc}")
         raise self.retry(exc=exc, countdown=30)
     finally:
-        db.close()
+        if db:
+            db.close()
 
 
 @celery_app.task(bind=True, name="app.workers.analysis_worker.download_and_run_analysis", max_retries=2)
@@ -132,10 +142,13 @@ def download_and_run_analysis(self: Task, analysis_id: str, source_url: str):
     import redis as redis_lib
     import yt_dlp
 
-    r = redis_lib.from_url(settings.redis_url)
-    db = SyncSession()
+    db = None
+    r = None
 
     try:
+        r = redis_lib.from_url(settings.redis_url)
+        db = SyncSession()
+
         from app.models.analysis import Analysis
 
         analysis = db.get(Analysis, analysis_id)
@@ -175,23 +188,10 @@ def download_and_run_analysis(self: Task, analysis_id: str, source_url: str):
         _run_pipeline(r, db, analysis, file_path)
 
     except SoftTimeLimitExceeded:
-        db.rollback()
-        from app.models.analysis import Analysis as A
-        analysis = db.get(A, analysis_id)
-        if analysis:
-            analysis.status = "failed"
-            analysis.error_message = "Analysis timed out. Try a shorter video."
-            db.commit()
-        _publish_progress(r, analysis_id, "failed", 0, "Analysis timed out.")
+        _safe_fail(db, r, analysis_id, "Analysis timed out. Try a shorter video.", "Analysis timed out.")
     except Exception as exc:
-        db.rollback()
-        from app.models.analysis import Analysis as A
-        analysis = db.get(A, analysis_id)
-        if analysis:
-            analysis.status = "failed"
-            analysis.error_message = str(exc)
-            db.commit()
-        _publish_progress(r, analysis_id, "failed", 0, f"Analysis failed: {exc}")
+        _safe_fail(db, r, analysis_id, str(exc)[:1000], f"Analysis failed: {exc}")
         raise self.retry(exc=exc, countdown=30)
     finally:
-        db.close()
+        if db:
+            db.close()
