@@ -18,7 +18,19 @@ from typing import Any
 
 import google.generativeai as genai
 
-from app.core.config import settings  # type: ignore[import]
+def _get_settings():
+    """Lazy-load settings to avoid import errors when running standalone."""
+    try:
+        from app.core.config import settings  # type: ignore[import]
+        return settings
+    except ImportError:
+        import os
+
+        class _FallbackSettings:
+            gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+            ai_model = os.getenv("AI_MODEL", "gemini-1.5-flash")
+
+        return _FallbackSettings()
 
 
 @dataclass
@@ -181,8 +193,8 @@ def _generate_llm_insights(analysis_data: dict, rule_insights: list[dict]) -> li
     logger = logging.getLogger(__name__)
 
     try:
-        genai.configure(api_key=settings.gemini_api_key)
-        model = genai.GenerativeModel(settings.ai_model)
+        genai.configure(api_key=_get_settings().gemini_api_key)
+        model = genai.GenerativeModel(_get_settings().ai_model)
 
         rule_summary = "\n".join(
             f"- {i['problem']}: {i['cause']}" for i in rule_insights[:4]
