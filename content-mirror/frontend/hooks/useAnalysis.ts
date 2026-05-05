@@ -32,7 +32,9 @@ export function useAnalysis() {
       setAnalysisId(analysis_id);
       sessionStorage.setItem(PENDING_KEY, analysis_id);
       connectWebSocket(analysis_id);
-    } catch {
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(detail ?? "Upload failed. Please try again.");
       setIsAnalyzing(false);
       setStage(null);
     }
@@ -161,7 +163,9 @@ export function useAnalysis() {
       setAnalysisId(analysis_id);
       sessionStorage.setItem(PENDING_KEY, analysis_id);
       connectWebSocket(analysis_id);
-    } catch {
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(detail ?? "Failed to start analysis. Please try again.");
       setIsAnalyzing(false);
       setStage(null);
     }

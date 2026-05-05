@@ -8,6 +8,7 @@ import type { AnalysisResult } from "@/lib/types";
 import { Download, RotateCcw, AlertTriangle, CheckCircle, ExternalLink, Loader2 } from "lucide-react";
 import { exportReport } from "@/lib/api";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 interface AnalysisResultsProps {
   result: AnalysisResult;
@@ -28,6 +29,8 @@ export function AnalysisResults({ result, onNewAnalysis }: AnalysisResultsProps)
       a.download = `content-mirror-${result.id}.${format}`;
       a.click();
       URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Export failed. Please try again.");
     } finally {
       setExporting(null);
     }

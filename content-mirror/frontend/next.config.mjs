@@ -13,8 +13,7 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) return [];
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
     const baseUrl = apiUrl.replace(/\/api\/v\d+$/, "");
     return [
       { source: "/api/:path*", destination: `${apiUrl}/:path*` },
