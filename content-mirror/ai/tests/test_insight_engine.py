@@ -130,10 +130,7 @@ def test_generate_insights_caps_at_8():
         subtitles_detected=False, sharpness_score=5.0, brightness_score=5.0,
     )
     with patch("engine.insight_engine.genai"):
-        with patch("engine.insight_engine.settings") as mock_settings:
-            mock_settings.gemini_api_key = ""
-            mock_settings.ai_model = "gemini-2.0-flash"
-            insights = generate_insights(data)
+        insights = generate_insights(data)
     assert len(insights) <= 8
 
 
@@ -149,10 +146,7 @@ def test_generate_insights_sorted_high_first():
         hook_score=2.0, audio_quality="poor", hook_message_present=False
     )
     with patch("engine.insight_engine.genai"):
-        with patch("engine.insight_engine.settings") as mock_settings:
-            mock_settings.gemini_api_key = ""
-            mock_settings.ai_model = "gemini-2.0-flash"
-            insights = generate_insights(data)
+        insights = generate_insights(data)
     severity_order = {"high": 0, "medium": 1, "low": 2}
     severities = [severity_order[i["severity"]] for i in insights]
     assert severities == sorted(severities)

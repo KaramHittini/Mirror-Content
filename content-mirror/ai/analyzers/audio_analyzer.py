@@ -114,6 +114,8 @@ def _compute_rms(y: np.ndarray) -> float:
 
 def _compute_silence_ratio(y: np.ndarray, sr: int, threshold_db: float = -40.0) -> float:
     """Fraction of audio that is below the silence threshold."""
+    if np.max(np.abs(y)) < 1e-6:
+        return 1.0
     intervals = librosa.effects.split(y, top_db=abs(threshold_db))
     voiced_samples = sum(end - start for start, end in intervals)
     return 1.0 - (voiced_samples / len(y))

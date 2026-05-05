@@ -95,6 +95,7 @@ CATEGORY_MAP = {
     "main message": "hook_message",
     "value": "hook_message",
     "face": "no_face",
+    "human": "no_face",
     "caption": "subtitles",
     "subtitle": "subtitles",
     "sharp": "sharpness",
