@@ -20,4 +20,5 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     task_soft_time_limit=8 * 60,   # 8 min: raises SoftTimeLimitExceeded (catchable)
     task_time_limit=10 * 60,       # 10 min: hard SIGKILL fallback
+    broker_connection_retry_on_startup=True,
 )

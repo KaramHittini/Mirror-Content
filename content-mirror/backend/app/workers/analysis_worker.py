@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.workers.celery_app import celery_app
 
+
 def _sync_db_url(url: str) -> str:
     """Convert any Postgres URL variant to a psycopg2 sync URL."""
     for prefix, replacement in (

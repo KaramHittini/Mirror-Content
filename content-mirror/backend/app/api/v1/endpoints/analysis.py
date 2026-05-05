@@ -9,7 +9,12 @@ from app.core.dependencies import get_current_user
 from app.db.database import get_session
 from app.models.analysis import Analysis
 from app.models.user import User
-from app.schemas.analysis import AnalysisResponse, AnalysisSummary, AnalysisUploadResponse, URLAnalysisRequest
+from app.schemas.analysis import (
+    AnalysisResponse,
+    AnalysisSummary,
+    AnalysisUploadResponse,
+    URLAnalysisRequest,
+)
 from app.services.queue_service import enqueue_analysis
 from app.services.storage_service import StorageService
 

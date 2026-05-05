@@ -37,7 +37,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-surface-950 flex">
       {/* Left panel — value prop */}
-      <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-between p-10 border-r border-white/[0.06]">
+      <div className="hidden lg:flex w-[480px] shrink-0 flex-col p-12 border-r border-white/[0.06] gap-14">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" fill="white" />
@@ -45,20 +45,34 @@ export default function SignupPage() {
           <span className="font-semibold text-white text-sm">Content Mirror</span>
         </Link>
 
-        <div>
-          <h2 className="text-xl font-bold text-white mb-6 leading-snug">
-            Stop posting and hoping.
-            <br />
-            <span className="text-zinc-400 font-normal">Start knowing what works.</span>
-          </h2>
-          <ul className="space-y-3">
+        <div className="flex-1 flex flex-col justify-center gap-10">
+          <div>
+            <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+              Stop posting and hoping.{" "}
+              <span className="text-brand-400">Start knowing what works.</span>
+            </h2>
+            <p className="text-zinc-400 text-lg leading-relaxed">
+              Every video you post is a data point. Content Mirror reads that data so
+              you know exactly what to change next time.
+            </p>
+          </div>
+
+          <ul className="space-y-4">
             {perks.map((perk) => (
-              <li key={perk} className="flex items-start gap-3 text-sm text-zinc-400">
-                <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+              <li key={perk} className="flex items-start gap-3 text-base text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                 {perk}
               </li>
             ))}
           </ul>
+        </div>
+
+        <div>
+          <p className="text-zinc-300 text-base font-medium leading-snug mb-3">
+            &ldquo;Finally — feedback that actually tells me why my videos tank,
+            not just that they do.&rdquo;
+          </p>
+          <p className="text-zinc-600 text-sm">— YouTube creator, 42k subscribers</p>
         </div>
       </div>
 

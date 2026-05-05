@@ -36,10 +36,10 @@ describe("StatsOverview", () => {
     vi.clearAllMocks();
   });
 
-  it("shows dashes while loading", () => {
+  it("shows a loading skeleton while fetching", () => {
     (api.get as ReturnType<typeof vi.fn>).mockReturnValue(new Promise(() => {}));
     render(<StatsOverview />, { wrapper });
-    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("stats-loading")).toBeInTheDocument();
   });
 
   it("displays usage count and limit when data loads", async () => {
@@ -49,7 +49,7 @@ describe("StatsOverview", () => {
 
     render(<StatsOverview />, { wrapper });
 
-    expect(await screen.findByText("analyses used")).toBeInTheDocument();
+    expect(await screen.findByText("used today")).toBeInTheDocument();
   });
 
   it("shows plan as capitalized text", async () => {

@@ -10,7 +10,13 @@ from app.core.security import hash_password, verify_password
 from app.db.database import get_session
 from app.models.analysis import Analysis
 from app.models.user import User
-from app.schemas.user import ChangeEmailRequest, ChangePasswordRequest, UsageResponse, UserResponse, UserUpdateRequest
+from app.schemas.user import (
+    ChangeEmailRequest,
+    ChangePasswordRequest,
+    UsageResponse,
+    UserResponse,
+    UserUpdateRequest,
+)
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 AVATAR_MAX_BYTES = 5 * 1024 * 1024  # 5 MB

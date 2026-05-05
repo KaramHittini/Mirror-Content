@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAnalysisHistory, deleteAnalysis } from "@/lib/api";
@@ -69,26 +69,26 @@ export default function HistoryPage() {
   }, [search]);
 
   // Reset and reload when filters change
-  const loadInitial = useCallback(async () => {
+  useEffect(() => {
+    let cancelled = false;
     setIsLoading(true);
     setOffset(0);
-    try {
-      const data: AnalysisSummary[] = await getAnalysisHistory({
-        limit: PAGE_SIZE,
-        offset: 0,
-        status: statusFilter || undefined,
-        search: debouncedSearch || undefined,
-      });
-      setAnalyses(data);
-      setHasMore(data.length === PAGE_SIZE);
-    } catch {
-      // error toast handled by axios interceptor
-    } finally {
-      setIsLoading(false);
-    }
+    getAnalysisHistory({
+      limit: PAGE_SIZE,
+      offset: 0,
+      status: statusFilter || undefined,
+      search: debouncedSearch || undefined,
+    })
+      .then((data: AnalysisSummary[]) => {
+        if (!cancelled) {
+          setAnalyses(data);
+          setHasMore(data.length === PAGE_SIZE);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
   }, [statusFilter, debouncedSearch]);
-
-  useEffect(() => { loadInitial(); }, [loadInitial]);
 
   const loadMore = async () => {
     const nextOffset = offset + PAGE_SIZE;

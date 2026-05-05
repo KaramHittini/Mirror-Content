@@ -2,7 +2,6 @@ import { Sidebar } from "@/components/shared/Sidebar";
 import { Navbar } from "@/components/shared/Navbar";
 import { BottomNav } from "@/components/shared/BottomNav";
 import { AuthGuard } from "@/components/shared/AuthGuard";
-import { VerificationBanner } from "@/components/dashboard/VerificationBanner";
 import { OfflineBanner } from "@/components/shared/OfflineBanner";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 
@@ -15,7 +14,6 @@ export default function DashboardLayout({
     <AuthGuard>
       <div className="h-screen bg-surface-950 flex flex-col overflow-hidden">
         <OfflineBanner />
-        <VerificationBanner />
         <div className="flex flex-1 overflow-hidden">
           <div className="hidden md:flex">
             <Sidebar />

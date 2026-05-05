@@ -29,7 +29,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-surface-950 flex">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-between p-10 border-r border-white/[0.06]">
+      <div className="hidden lg:flex w-[480px] shrink-0 flex-col p-12 border-r border-white/[0.06] gap-14">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" fill="white" />
@@ -37,11 +37,37 @@ export default function LoginPage() {
           <span className="font-semibold text-white text-sm">Content Mirror</span>
         </Link>
 
+        <div className="flex-1 flex flex-col justify-center gap-10">
+          <div>
+            <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+              The feedback loop every creator is missing.
+            </h2>
+            <p className="text-zinc-400 text-lg leading-relaxed">
+              Upload a video. Get a full breakdown of what&apos;s hurting your hook,
+              pacing, and retention — and exactly how to fix it.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Hook Score", desc: "0–10 rating for your opening seconds" },
+              { label: "Pacing Analysis", desc: "Detect slow segments automatically" },
+              { label: "Audio Quality", desc: "WPM, filler words & clarity check" },
+              { label: "Visual Score", desc: "Sharpness, brightness & face detection" },
+            ].map(({ label, desc }) => (
+              <div key={label} className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.06]">
+                <p className="text-white text-sm font-semibold mb-1">{label}</p>
+                <p className="text-zinc-500 text-xs leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div>
-          <blockquote className="text-zinc-300 text-lg font-medium leading-snug mb-4">
+          <p className="text-zinc-300 text-base font-medium leading-snug mb-3">
             &ldquo;I went from 2% to 12% watch time in two weeks just by fixing what
             Content Mirror flagged.&rdquo;
-          </blockquote>
+          </p>
           <p className="text-zinc-600 text-sm">— TikTok creator, 180k followers</p>
         </div>
       </div>

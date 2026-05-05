@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Zap, BarChart3, Lightbulb, Target, CheckCircle } from "lucide-react";
+import Aurora from "@/components/shared/Aurora";
 
 const features = [
   {
@@ -70,45 +71,52 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-28">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-1.5 bg-brand-500/10 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8 border border-brand-500/20">
-          <Zap className="w-3 h-3" fill="currentColor" />
-          AI-powered video analysis
-        </div>
+      <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-28 relative overflow-hidden">
+        <Aurora
+          colorStops={["#4f46e5", "#7c3aed", "#a78bfa"]}
+          amplitude={1.1}
+          speed={0.7}
+        />
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 bg-brand-500/10 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8 border border-brand-500/20">
+            <Zap className="w-3 h-3" fill="currentColor" />
+            AI-powered video analysis
+          </div>
 
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.08] mb-6 max-w-4xl">
-          Know exactly why your{" "}
-          <span className="bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent">
-            content fails
-          </span>
-        </h1>
-
-        <p className="text-lg text-zinc-400 max-w-xl mb-10 leading-relaxed">
-          Upload any video and get a full breakdown — hook strength, pacing, audio quality,
-          and actionable fixes you can apply today.
-        </p>
-
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 mb-12">
-          <Link href="/signup" className="btn-primary text-base px-6 py-3">
-            Analyze your first video free
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link href="/login" className="btn-ghost text-base px-6 py-3">
-            Sign in
-          </Link>
-        </div>
-
-        {/* Proof points */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-zinc-500">
-          {proofPoints.map((pt) => (
-            <span key={pt} className="flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              {pt}
+          {/* Headline */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.08] mb-6 max-w-4xl">
+            Know exactly why your{" "}
+            <span className="bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent">
+              content fails
             </span>
-          ))}
+          </h1>
+
+          <p className="text-lg text-zinc-400 max-w-xl mb-10 leading-relaxed">
+            Upload any video and get a full breakdown — hook strength, pacing, audio quality,
+            and actionable fixes you can apply today.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 mb-12">
+            <Link href="/signup" className="btn-primary text-base px-6 py-3">
+              Analyze your first video free
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/login" className="btn-ghost text-base px-6 py-3">
+              Sign in
+            </Link>
+          </div>
+
+          {/* Proof points */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-zinc-500">
+            {proofPoints.map((pt) => (
+              <span key={pt} className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                {pt}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
